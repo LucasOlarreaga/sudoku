@@ -45,7 +45,7 @@
         width: 40px;
         height: 40px;
         text-align: center;
-        font-family: "Comic Sans MS", "Comic Sans", cursive;
+        font-family: "Comic Sans MS", sans-serif;
         border: 1px solid #000; /* Consistent border width */
         padding: 0; /* Remove padding to make the input fill the cell */
       }
@@ -53,8 +53,8 @@
         width: 100%;
         height: 100%;
         text-align: center;
-        font-family: "Comic Sans MS", "Comic Sans", cursive;
-        color: rgb(19, 121, 155);
+        font-family: "Comic Sans MS", sans-serif;
+        color: rgb(14, 95, 122);
         font-size: 20px;
         border: none; /* Remove the border from input fields */
         box-sizing: border-box; /* Ensure input fits within the cell */
@@ -220,7 +220,7 @@
         if (cellElement.querySelector("input")) {
           cellElement.querySelector("input").value = correctNumber;
           cellElement.querySelector("input").disabled = true; // Disable input to indicate it's revealed
-          cellElement.querySelector("input").style.color = "blue"; // Color hint numbers differently
+          cellElement.querySelector("input").style.color = "purple"; // Color hint numbers differently
         } else {
           cellElement.textContent = correctNumber;
         }
