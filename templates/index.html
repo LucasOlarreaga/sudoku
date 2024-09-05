@@ -83,7 +83,15 @@
     <h1>Sudoku Puzzle</h1>
   </head>
   <body>
-    <p style="text-align: center">Lives remaining: <span id="lives">3</span></p>
+    <p
+      style="
+        text-align: center;
+        font-family: Comic Sans MS, sans-serif;
+        color: rgb(132, 24, 24);
+      "
+    >
+      Lives remaining: <span id="lives">3</span>
+    </p>
     <table>
       {% set indices = get_row_col_indices(puzzle) %} {% for row_index in
       range(puzzle|length) %}
@@ -214,7 +222,39 @@
       }
 
       function solveSudoku() {
-        // Existing solve function
+        let board = [];
+        document.querySelectorAll("tr").forEach((row, i) => {
+          let rowArr = [];
+          row.querySelectorAll("td").forEach((cell, j) => {
+            let value = cell.querySelector("input")
+              ? cell.querySelector("input").value
+              : cell.textContent;
+            rowArr.push(value === "" ? 0 : parseInt(value));
+          });
+          board.push(rowArr);
+        });
+
+        const answer = JSON.parse(document.getElementById("answer").value);
+
+        fetch("/solve", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ board: board, answer: answer }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const messageDiv = document.getElementById("message");
+            if (data.status === "solved") {
+              messageDiv.textContent =
+                "Congratulations! You solved the Sudoku!";
+              messageDiv.style.color = "green";
+            } else {
+              messageDiv.textContent = "Incorrect solution. Please try again.";
+              messageDiv.style.color = "red";
+            }
+          });
       }
 
       function newPuzzle() {
@@ -222,7 +262,55 @@
       }
 
       function revealNumber() {
-        // Existing reveal hint function
+        const answer = JSON.parse(document.getElementById("answer").value);
+        let board = [];
+
+        document.querySelectorAll("tr").forEach((row, i) => {
+          let rowArr = [];
+          row.querySelectorAll("td").forEach((cell, j) => {
+            let value = cell.querySelector("input")
+              ? cell.querySelector("input").value
+              : cell.textContent;
+            rowArr.push(value === "" ? 0 : parseInt(value));
+          });
+          board.push(rowArr);
+        });
+
+        // Find all empty cells
+        let emptyCells = [];
+        for (let i = 0; i < 9; i++) {
+          for (let j = 0; j < 9; j++) {
+            if (board[i][j] === 0) {
+              emptyCells.push({ row: i, col: j });
+            }
+          }
+        }
+
+        // If there are no empty cells, no hint can be given
+        if (emptyCells.length === 0) {
+          alert("No more hints available!");
+          return;
+        }
+
+        // Select a random empty cell
+        const randomIndex = Math.floor(Math.random() * emptyCells.length);
+        const cell = emptyCells[randomIndex];
+
+        // Reveal the correct number in that cell
+        const correctNumber = answer[cell.row][cell.col];
+        board[cell.row][cell.col] = correctNumber;
+
+        // Update the UI
+        const cellElement = document
+          .querySelectorAll("tr")
+          [cell.row].querySelectorAll("td")[cell.col];
+        if (cellElement.querySelector("input")) {
+          cellElement.querySelector("input").value = correctNumber;
+          cellElement.querySelector("input").disabled = true; // Disable input to indicate it's revealed
+          cellElement.querySelector("input").style.color = "blue"; // Color hint numbers differently
+        } else {
+          cellElement.textContent = correctNumber;
+        }
       }
     </script>
   </body>

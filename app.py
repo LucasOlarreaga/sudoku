@@ -38,17 +38,6 @@ def check_number():
         return jsonify({'correct': False, 'lives': session.get('lives', 3)})
 
     correct_number = answer[row][col]
-    weird_number = answer[3][4]
-
-    # Debug print statements
-    print(f"User Input: row={row}, col={col}, number={number}")
-    print(f"Correct Answer: {correct_number}")
-    print(f"weird answer: {weird_number}\n")
-    test_row, test_col = 3, 4
-    print(type(answer))
-    print(f"Value at row={test_row}, col={test_col}: {answer[test_row][test_col]}")
-
-    print(f"\nFull puzzle answer is: {answer}")
 
     if correct_number == number:
         return jsonify({'correct': True})
@@ -67,9 +56,15 @@ def get_row_col_indices(puzzle):
 def utility_processor():
     return dict(get_row_col_indices=get_row_col_indices)
 
+@app.route('/solve', methods=['POST'])
+def solve():
+    user_board = request.json.get('board', [])
+    answer = request.json.get('answer', [])
 
-
-
+    if solve_sudoku(user_board, answer):
+        return jsonify({'status': 'solved'})
+    else:
+        return jsonify({'status': 'incorrect'})
 
 
 if __name__ == '__main__':
