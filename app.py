@@ -19,7 +19,6 @@ def check_number():
         return jsonify({'correct': False, 'lives': 0})
 
     data = request.json
-    print(data)
     row = int(data.get('row', -1)) - 1 # Default to -1 if not provided
     col = int(data.get('col', -1)) - 1 # Default to -1 if not provided
     number_str = data.get('number', '')  # Get the number as a string
@@ -55,16 +54,6 @@ def get_row_col_indices(puzzle):
 @app.context_processor
 def utility_processor():
     return dict(get_row_col_indices=get_row_col_indices)
-
-@app.route('/solve', methods=['POST'])
-def solve():
-    user_board = request.json.get('board', [])
-    answer = request.json.get('answer', [])
-
-    if solve_sudoku(user_board, answer):
-        return jsonify({'status': 'solved'})
-    else:
-        return jsonify({'status': 'incorrect'})
 
 
 if __name__ == '__main__':

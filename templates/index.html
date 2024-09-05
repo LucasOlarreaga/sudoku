@@ -122,7 +122,6 @@
     ></div>
 
     <div class="button-container">
-      <button onclick="solveSudoku()">Done</button>
       <button onclick="newPuzzle()">New</button>
       <button onclick="revealNumber()">Hint</button>
     </div>
@@ -170,18 +169,50 @@
           });
       }
 
+      function checkCompletion() {
+        let board = [];
+        document.querySelectorAll("tr").forEach((row, i) => {
+          let rowArr = [];
+          row.querySelectorAll("td").forEach((cell, j) => {
+            let value = cell.querySelector("input")
+              ? cell.querySelector("input").value
+              : cell.textContent;
+            rowArr.push(value === "" ? 0 : parseInt(value));
+          });
+          board.push(rowArr);
+        });
+
+        const answer = JSON.parse(document.getElementById("answer").value);
+
+        // Check if the current board matches the answer
+        const isCompleted = board.every((row, i) =>
+          row.every((cell, j) => cell === answer[i][j])
+        );
+
+        if (isCompleted) {
+          document.getElementById("message").textContent =
+            "Well Done! You've solved the Sudoku!";
+          document.getElementById("message").style.color = "green";
+          disableAllInputs();
+        }
+      }
+
       function checkInput(input) {
         const value = input.value;
         const row = input.getAttribute("data-row");
         const col = input.getAttribute("data-col");
 
+        // Check if the value is empty
         if (value === "") {
+          // Reset the background color when input is deleted
+          input.classList.remove("incorrect");
           return;
         }
 
         // Ensure the value is a number within the allowed range
         if (value && (value < 1 || value > 9)) {
           input.value = "";
+          input.classList.remove("incorrect");
           return;
         }
 
@@ -200,6 +231,7 @@
           .then((data) => {
             if (data.correct) {
               input.classList.remove("incorrect");
+              checkCompletion(); // Check if the puzzle is completed correctly
             } else {
               input.classList.add("incorrect");
               lives = data.lives;
@@ -219,42 +251,6 @@
         document.querySelectorAll("input").forEach((input) => {
           input.disabled = true;
         });
-      }
-
-      function solveSudoku() {
-        let board = [];
-        document.querySelectorAll("tr").forEach((row, i) => {
-          let rowArr = [];
-          row.querySelectorAll("td").forEach((cell, j) => {
-            let value = cell.querySelector("input")
-              ? cell.querySelector("input").value
-              : cell.textContent;
-            rowArr.push(value === "" ? 0 : parseInt(value));
-          });
-          board.push(rowArr);
-        });
-
-        const answer = JSON.parse(document.getElementById("answer").value);
-
-        fetch("/solve", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ board: board, answer: answer }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            const messageDiv = document.getElementById("message");
-            if (data.status === "solved") {
-              messageDiv.textContent =
-                "Congratulations! You solved the Sudoku!";
-              messageDiv.style.color = "green";
-            } else {
-              messageDiv.textContent = "Incorrect solution. Please try again.";
-              messageDiv.style.color = "red";
-            }
-          });
       }
 
       function newPuzzle() {
