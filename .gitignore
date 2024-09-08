@@ -1,2 +1,7 @@
-not_essential
+# Ignore specific files
 .DS_Store
+key.py
+
+# Ignore environment files
+.env
+*.env
