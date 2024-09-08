@@ -2,6 +2,10 @@
 .DS_Store
 key.py
 
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+
 # Ignore environment files
 .env
 *.env
