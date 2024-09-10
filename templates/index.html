@@ -43,6 +43,12 @@
         position: relative; /* Relative positioning for child elements */
       }
 
+      info-container {
+        display: flex;
+        flex-direction: column; /* Ensures vertical stacking */
+        align-items: center; /* Centers both lives and hints horizontally */
+      }
+
       table {
         border-collapse: collapse;
         font-size: 20px;
@@ -105,11 +111,12 @@
       }
 
       #lives-container {
-        margin-right: 20px; /* Space between grid and hearts */
+        margin-left: 12px; /* Space between grid and hearts */
       }
 
       #hints-container {
-        margin-top: 10px; /* Space between hearts and hints */
+        margin-top: 70px;
+        margin-left: 12px; /* Space between hearts and hints */
       }
 
       .life,
@@ -149,17 +156,18 @@
         </tr>
         {% endfor %}
       </table>
+      <div id="info-container">
+        <div id="lives-container">
+          {% for i in range(lives) %}
+          <span class="life">❤️</span>
+          {% endfor %}
+        </div>
 
-      <div id="lives-container">
-        {% for i in range(lives) %}
-        <span class="life">❤️</span>
-        {% endfor %}
-      </div>
-
-      <div id="hints-container">
-        {% for i in range(hints) %}
-        <span class="hint">🔍</span>
-        {% endfor %}
+        <div id="hints-container">
+          {% for i in range(hints) %}
+          <span class="hint">🔍</span>
+          {% endfor %}
+        </div>
       </div>
     </div>
 
@@ -188,14 +196,14 @@
       // Update lives and hearts
       function updateLives(newLives) {
         lives = newLives;
-        const hearts = document.querySelectorAll(".life");
+        const hearts = Array.from(document.querySelectorAll(".life")).reverse(); // Reverse the order of hearts
 
-        // Fade out hearts based on the number of lives
+        // Update lives by marking the top hearts as used
         hearts.forEach((heart, index) => {
           if (index < lives) {
-            heart.classList.remove("used");
+            heart.classList.remove("used"); // Keep the first few hearts active
           } else {
-            heart.classList.add("used");
+            heart.classList.add("used"); // Mark the rest as used
           }
         });
 
@@ -316,7 +324,9 @@
         // If there are no empty cells, no hint can be given
         let n_hints_used = Array.from(document.querySelectorAll(".hint.used"));
         if (emptyCells.length < 2 || n_hints_used.length === 3) {
-          alert("No more hints available!");
+          document.getElementById("message").textContent =
+            "No more hints available!";
+          document.getElementById("message").style.color = "purple";
           return;
         } else {
           useHint();
@@ -348,9 +358,8 @@
         let hints = Array.from(document.querySelectorAll(".hint:not(.used)")); // Grab non-used hints
 
         if (hints.length > 0) {
-          let hint = hints[hints.length - 1];
+          let hint = hints[0]; // Removes the top hint
           hint.classList.add("used");
-          hints = hints.slice(0, -1);
         }
       }
     </script>
