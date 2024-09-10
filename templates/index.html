@@ -8,15 +8,16 @@
       html {
         background-color: rgb(188, 225, 239);
       }
+
       h1 {
-        font-size: 29px;
+        font-size: 31px;
         text-align: center;
         color: rgb(14, 111, 96);
       }
+
       .button-container {
         text-align: center;
         margin-top: 20px;
-        justify-content: center;
       }
 
       .button-container button {
@@ -34,12 +35,20 @@
         margin-right: 20px;
       }
 
+      #container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px auto; /* Center the container */
+        position: relative; /* Relative positioning for child elements */
+      }
+
       table {
         border-collapse: collapse;
-        margin: 20px auto;
         font-size: 20px;
         background-color: white;
       }
+
       td {
         width: 40px;
         height: 40px;
@@ -48,6 +57,7 @@
         border: 1px solid #000;
         padding: 0;
       }
+
       input {
         width: 100%;
         height: 100%;
@@ -58,62 +68,100 @@
         border: none;
         box-sizing: border-box;
       }
+
       .incorrect {
         background-color: red;
         color: white;
       }
+
       tr:nth-child(3) td,
       tr:nth-child(6) td {
         border-bottom: 2px solid #000;
       }
+
       td:nth-child(3),
       td:nth-child(6) {
         border-right: 2px solid #000;
       }
+
       input[type="number"] {
         -moz-appearance: textfield;
         appearance: textfield;
       }
+
       input[type="number"]::-webkit-outer-spin-button,
       input[type="number"]::-webkit-inner-spin-button {
         -webkit-appearance: none;
         margin: 0;
       }
+
+      #lives-container,
+      #hints-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        font-size: 24px; /* Adjust size to preference */
+      }
+
+      #lives-container {
+        margin-right: 20px; /* Space between grid and hearts */
+      }
+
+      #hints-container {
+        margin-top: 10px; /* Space between hearts and hints */
+      }
+
+      .life,
+      .hint {
+        cursor: pointer;
+        transition: opacity 0.3s ease;
+      }
+
+      .life.used,
+      .hint.used {
+        opacity: 0.2; /* Makes it look "faded" when used */
+      }
     </style>
     <h1>Sudoku Puzzle</h1>
   </head>
   <body>
-    <p
-      style="
-        text-align: center;
-        font-family: Comic Sans MS, sans-serif;
-        color: rgb(132, 24, 24);
-      "
-    >
-      Lives remaining: <span id="lives">3</span>
-    </p>
-    <table>
-      {% set indices = get_row_col_indices(puzzle) %} {% for row_index in
-      range(puzzle|length) %}
-      <tr>
-        {% for col_index in range(puzzle[row_index]|length) %}
-        <td>
-          {% if puzzle[row_index][col_index] == 0 %}
-          <input
-            type="number"
-            min="1"
-            max="9"
-            step="1"
-            data-row="{{ row_index + 1}}"
-            data-col="{{ col_index + 1 }}"
-            oninput="checkInput(this)"
-          />
-          {% else %} {{ puzzle[row_index][col_index] }} {% endif %}
-        </td>
+    <div id="container">
+      <table>
+        {% set indices = get_row_col_indices(puzzle) %} {% for row_index in
+        range(puzzle|length) %}
+        <tr>
+          {% for col_index in range(puzzle[row_index]|length) %}
+          <td>
+            {% if puzzle[row_index][col_index] == 0 %}
+            <input
+              type="number"
+              min="1"
+              max="9"
+              step="1"
+              data-row="{{ row_index + 1 }}"
+              data-col="{{ col_index + 1 }}"
+              oninput="checkInput(this)"
+            />
+            {% else %} {{ puzzle[row_index][col_index] }} {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
         {% endfor %}
-      </tr>
-      {% endfor %}
-    </table>
+      </table>
+
+      <div id="lives-container">
+        {% for i in range(lives) %}
+        <span class="life">❤️</span>
+        {% endfor %}
+      </div>
+
+      <div id="hints-container">
+        {% for i in range(hints) %}
+        <span class="hint">🔍</span>
+        {% endfor %}
+      </div>
+    </div>
 
     <input type="hidden" id="answer" value="{{ answer | tojson }}" />
     <div
@@ -127,7 +175,47 @@
     </div>
 
     <script>
-      let lives = 3;
+      // Initialize lives variable
+      let lives = parseInt(
+        document.querySelector("span#lives")?.textContent || "3",
+        10
+      );
+      let hints = parseInt(
+        document.querySelector("span#hints")?.textContent || "3",
+        10
+      );
+
+      // Update lives and hearts
+      function updateLives(newLives) {
+        lives = newLives;
+        const hearts = document.querySelectorAll(".life");
+
+        // Fade out hearts based on the number of lives
+        hearts.forEach((heart, index) => {
+          if (index < lives) {
+            heart.classList.remove("used");
+          } else {
+            heart.classList.add("used");
+          }
+        });
+
+        // Check for game over
+        if (lives <= 0) {
+          document.getElementById("message").textContent =
+            "Game Over! You've lost all your lives.";
+          document.getElementById("message").style.color = "red";
+          disableAllInputs();
+        }
+      }
+
+      function loseLife() {
+        updateLives(lives - 1); // Decrement lives and update UI
+      }
+
+      // Make sure to update the initial number of lives on page load
+      document.addEventListener("DOMContentLoaded", () => {
+        updateLives(lives);
+      });
 
       function checkInput(input) {
         const value = input.value;
@@ -154,17 +242,10 @@
           .then((data) => {
             if (data.correct) {
               input.classList.remove("incorrect");
+              checkCompletion(); // Check if the puzzle is completed correctly
             } else {
               input.classList.add("incorrect");
-              lives = data.lives;
-              document.getElementById("lives").textContent = lives;
-
-              if (lives <= 0) {
-                document.getElementById("message").textContent =
-                  "Game Over! You've lost all your lives.";
-                document.getElementById("message").style.color = "red";
-                disableAllInputs();
-              }
+              updateLives(data.lives);
             }
           });
       }
@@ -195,56 +276,6 @@
           document.getElementById("message").style.color = "green";
           disableAllInputs();
         }
-      }
-
-      function checkInput(input) {
-        const value = input.value;
-        const row = input.getAttribute("data-row");
-        const col = input.getAttribute("data-col");
-
-        // Check if the value is empty
-        if (value === "") {
-          // Reset the background color when input is deleted
-          input.classList.remove("incorrect");
-          return;
-        }
-
-        // Ensure the value is a number within the allowed range
-        if (value && (value < 1 || value > 9)) {
-          input.value = "";
-          input.classList.remove("incorrect");
-          return;
-        }
-
-        fetch("/check_number", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            row: row,
-            col: col,
-            number: parseInt(value, 10), // Ensure value is sent as integer
-          }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.correct) {
-              input.classList.remove("incorrect");
-              checkCompletion(); // Check if the puzzle is completed correctly
-            } else {
-              input.classList.add("incorrect");
-              lives = data.lives;
-              document.getElementById("lives").textContent = lives;
-
-              if (lives <= 0) {
-                document.getElementById("message").textContent =
-                  "Game Over! You've lost all your lives.";
-                document.getElementById("message").style.color = "red";
-                disableAllInputs();
-              }
-            }
-          });
       }
 
       function disableAllInputs() {
@@ -283,9 +314,12 @@
         }
 
         // If there are no empty cells, no hint can be given
-        if (emptyCells.length === 0) {
+        let n_hints_used = Array.from(document.querySelectorAll(".hint.used"));
+        if (emptyCells.length < 2 || n_hints_used.length === 3) {
           alert("No more hints available!");
           return;
+        } else {
+          useHint();
         }
 
         // Select a random empty cell
@@ -306,6 +340,17 @@
           cellElement.querySelector("input").style.color = "blue"; // Color hint numbers differently
         } else {
           cellElement.textContent = correctNumber;
+        }
+      }
+
+      function useHint() {
+        // Ensure hints is correctly defined and updated elsewhere in your code
+        let hints = Array.from(document.querySelectorAll(".hint:not(.used)")); // Grab non-used hints
+
+        if (hints.length > 0) {
+          let hint = hints[hints.length - 1];
+          hint.classList.add("used");
+          hints = hints.slice(0, -1);
         }
       }
     </script>

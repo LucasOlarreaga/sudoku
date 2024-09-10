@@ -18,7 +18,8 @@ def index():
     session['answer'] = answer  # Store the answer in the session
     session['puzzle'] = puzzle  # Store the answer in the session
     session['lives'] = 3  # Start with 3 lives
-    return render_template('index.html', puzzle=puzzle, answer=answer)
+    session['hints'] = 3  # Start with 3 hints
+    return render_template('index.html', hints=session['hints'], lives=session['lives'], puzzle=session['puzzle'], answer=session['answer'])
 
 
 @app.route('/check_number', methods=['POST'])
