@@ -1,5 +1,5 @@
-from flask import Flask, render_template, jsonify, request, session
-from sudoku import generate_sudoku, get_row_col_indices # import functions from sudoku.py
+from flask import Flask, render_template, session, request
+from sudoku import generate_sudoku, get_row_col_indices, check_number # import functions from sudoku.py
 from dotenv import load_dotenv
 import os
 
@@ -23,44 +23,9 @@ def index():
 
 
 @app.route('/check_number', methods=['POST'])
-def check_number():
-    if session.get('lives', 3) <= 0: # Checking if lives equal 0 or less (in case)
-        return jsonify({'correct': False, 'lives': 0})
-
-    data = request.json
-    row = int(data.get('row', -1)) - 1 # Default to -1 if not provided
-    col = int(data.get('col', -1)) - 1 # Default to -1 if not provided
-    number_str = data.get('number', '')  # Get the number as a string
-
-    # If empty returns nothing
-    if number_str == '':
-        # Return the previous amount of lives (aka no change, if empty default to 3)
-        return jsonify({'correct': False, 'lives': session.get('lives', 3)})
-
-    # If unable to convert string to int return nothing
-    try:
-        number = int(number_str)
-    except ValueError:
-        return jsonify({'correct': False, 'lives': session.get('lives', 3)})
-
-    # Obtain answer from session data (if empty return [])
-    answer = session.get('answer', [])
-
-    # Ensuring answer we just got fits the dimensions of grid (or else return nothing)
-    if not (0 <= row < len(answer) and 0 <= col < len(answer[row])):
-        return jsonify({'correct': False, 'lives': session.get('lives', 3)})
-
-    # Obtain the specific number in Xth row and Yth column (like input we are comparing)
-    correct_number = answer[row][col]
-
-    # Checking if input equals correct number
-    if correct_number == number:
-        return jsonify({'correct': True})
-    else:
-        # If not remove 1 life
-        session['lives'] -= 1
-        # Return the newly set amount of lives (no default value as backup)
-        return jsonify({'correct': False, 'lives': session['lives']})
+def check():
+    return check_number(request=request, session=session)
+    
 
 # Decorator runs before every template, meaking the returned dictionnary available
 @app.context_processor

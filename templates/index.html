@@ -39,14 +39,14 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        margin: 20px auto; /* Center the container */
-        position: relative; /* Relative positioning for child elements */
+        margin: 20px auto;
+        position: relative;
       }
 
-      info-container {
+      #info-container {
         display: flex;
-        flex-direction: column; /* Ensures vertical stacking */
-        align-items: center; /* Centers both lives and hints horizontally */
+        flex-direction: column;
+        align-items: center;
       }
 
       table {
@@ -107,16 +107,16 @@
         flex-direction: column;
         align-items: center;
         gap: 10px;
-        font-size: 24px; /* Adjust size to preference */
+        font-size: 24px;
       }
 
       #lives-container {
-        margin-left: 12px; /* Space between grid and hearts */
+        margin-left: 12px;
       }
 
       #hints-container {
         margin-top: 70px;
-        margin-left: 12px; /* Space between hearts and hints */
+        margin-left: 12px;
       }
 
       .life,
@@ -127,7 +127,7 @@
 
       .life.used,
       .hint.used {
-        opacity: 0.2; /* Makes it look "faded" when used */
+        opacity: 0.2;
       }
     </style>
     <h1>Sudoku Puzzle</h1>
@@ -183,192 +183,7 @@
       <button onclick="revealNumber()">Hint</button>
     </div>
 
-    <script>
-      // Initialize lives variable
-      let lives = parseInt(
-        document.querySelector("span#lives")?.textContent || "3",
-        10
-      );
-      let hints = parseInt(
-        document.querySelector("span#hints")?.textContent || "3",
-        10
-      );
-
-      // Update lives and hearts
-      function updateLives(newLives) {
-        lives = newLives;
-        const hearts = Array.from(document.querySelectorAll(".life")).reverse(); // Reverse the order of hearts
-
-        // Update lives by marking the top hearts as used
-        hearts.forEach((heart, index) => {
-          if (index < lives) {
-            heart.classList.remove("used"); // Keep the first few hearts active
-          } else {
-            heart.classList.add("used"); // Mark the rest as used
-          }
-        });
-
-        // Check for game over
-        if (lives <= 0) {
-          document.getElementById("message").textContent =
-            "Game Over! You've lost all your lives.";
-          document.getElementById("message").style.color = "red";
-          disableAllInputs();
-        }
-      }
-
-      function loseLife() {
-        updateLives(lives - 1); // Decrement lives and update UI
-      }
-
-      // Make sure to update the initial number of lives on page load
-      document.addEventListener("DOMContentLoaded", () => {
-        updateLives(lives);
-      });
-
-      function checkInput(input) {
-        const value = input.value;
-        const row = input.getAttribute("data-row");
-        const col = input.getAttribute("data-col");
-
-        if (value && (value < 1 || value > 9)) {
-          input.value = "";
-          return;
-        }
-
-        // Remove the "incorrect" class if the input is cleared
-        if (!value) {
-          input.classList.remove("incorrect");
-          return; // Exit if the input is empty
-        }
-
-        fetch("/check_number", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            row: row,
-            col: col,
-            number: value,
-          }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.correct) {
-              input.classList.remove("incorrect");
-              checkCompletion(); // Check if the puzzle is completed correctly
-            } else {
-              input.classList.add("incorrect");
-              updateLives(data.lives);
-            }
-          });
-      }
-
-      function checkCompletion() {
-        let board = [];
-        document.querySelectorAll("tr").forEach((row, i) => {
-          let rowArr = [];
-          row.querySelectorAll("td").forEach((cell, j) => {
-            let value = cell.querySelector("input")
-              ? cell.querySelector("input").value
-              : cell.textContent;
-            rowArr.push(value === "" ? 0 : parseInt(value));
-          });
-          board.push(rowArr);
-        });
-
-        const answer = JSON.parse(document.getElementById("answer").value);
-
-        // Check if the current board matches the answer
-        const isCompleted = board.every((row, i) =>
-          row.every((cell, j) => cell === answer[i][j])
-        );
-
-        if (isCompleted) {
-          document.getElementById("message").textContent =
-            "Well Done! You've solved the Sudoku!";
-          document.getElementById("message").style.color = "green";
-          disableAllInputs();
-        }
-      }
-
-      function disableAllInputs() {
-        document.querySelectorAll("input").forEach((input) => {
-          input.disabled = true;
-        });
-      }
-
-      function newPuzzle() {
-        location.reload();
-      }
-
-      function revealNumber() {
-        const answer = JSON.parse(document.getElementById("answer").value);
-        let board = [];
-
-        document.querySelectorAll("tr").forEach((row, i) => {
-          let rowArr = [];
-          row.querySelectorAll("td").forEach((cell, j) => {
-            let value = cell.querySelector("input")
-              ? cell.querySelector("input").value
-              : cell.textContent;
-            rowArr.push(value === "" ? 0 : parseInt(value));
-          });
-          board.push(rowArr);
-        });
-
-        // Find all empty cells
-        let emptyCells = [];
-        for (let i = 0; i < 9; i++) {
-          for (let j = 0; j < 9; j++) {
-            if (board[i][j] === 0) {
-              emptyCells.push({ row: i, col: j });
-            }
-          }
-        }
-
-        // If there are no empty cells, no hint can be given
-        let n_hints_used = Array.from(document.querySelectorAll(".hint.used"));
-        if (emptyCells.length < 2 || n_hints_used.length === 3) {
-          document.getElementById("message").textContent =
-            "No more hints available!";
-          document.getElementById("message").style.color = "purple";
-          return;
-        } else {
-          useHint();
-        }
-
-        // Select a random empty cell
-        const randomIndex = Math.floor(Math.random() * emptyCells.length);
-        const cell = emptyCells[randomIndex];
-
-        // Reveal the correct number in that cell
-        const correctNumber = answer[cell.row][cell.col];
-        board[cell.row][cell.col] = correctNumber;
-
-        // Update the UI
-        const cellElement = document
-          .querySelectorAll("tr")
-          [cell.row].querySelectorAll("td")[cell.col];
-        if (cellElement.querySelector("input")) {
-          cellElement.querySelector("input").value = correctNumber;
-          cellElement.querySelector("input").disabled = true; // Disable input to indicate it's revealed
-          cellElement.querySelector("input").style.color = "blue"; // Color hint numbers differently
-        } else {
-          cellElement.textContent = correctNumber;
-        }
-      }
-
-      function useHint() {
-        // Ensure hints is correctly defined and updated elsewhere in your code
-        let hints = Array.from(document.querySelectorAll(".hint:not(.used)")); // Grab non-used hints
-
-        if (hints.length > 0) {
-          let hint = hints[0]; // Removes the top hint
-          hint.classList.add("used");
-        }
-      }
-    </script>
+    <!-- Link to the external script -->
+    <script src="{{ url_for('static', filename='js/sudoku.js') }}"></script>
   </body>
 </html>
