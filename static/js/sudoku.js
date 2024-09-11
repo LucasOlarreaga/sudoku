@@ -60,7 +60,10 @@ function checkInput(input) {
     .then((data) => {
       if (data.correct) {
         input.classList.remove("incorrect");
+        updateCurrentGrid();  // Update grid after correct input
         checkCompletion();
+        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+        cell.disabled = true;
       } else {
         input.classList.add("incorrect");
         updateLives(data.lives);
@@ -133,7 +136,8 @@ function revealNumber() {
     cell.disabled = true;
 
     useHint();
-    checkCompletion();
+    updateCurrentGrid(); // Ensure the current grid is up-to-date
+    checkCompletion(); // Check if the puzzle is completed
   }
 }
 
@@ -154,3 +158,55 @@ function useHint() {
     document.getElementById("message").style.color = "orange";
   }
 }
+
+function updateMarkers(number) {
+  if (!completedNumbers.includes(number)) {
+    completedNumbers.push(number);
+    completedNumbers.sort((a, b) => a - b); // Sort numbers in ascending order
+    
+    // Clear the marker container
+    const markerContainer = document.getElementById("marker-container");
+    markerContainer.innerHTML = "";
+    
+    // Add sorted markers
+    completedNumbers.forEach(num => {
+      const marker = document.createElement("div");
+      marker.className = "marker";
+      marker.setAttribute("data-number", num);
+      marker.textContent = num;
+      markerContainer.appendChild(marker);
+    });
+  }
+}
+
+function updateCurrentGrid() {
+  const currentGrid = [];
+
+  document.querySelectorAll("tr").forEach((row, i) => {
+    const rowArr = [];
+    row.querySelectorAll("td").forEach((cell, j) => {
+      const input = cell.querySelector("input");
+      rowArr.push(input ? parseInt(input.value) || 0 : parseInt(cell.textContent) || 0);
+    });
+    currentGrid.push(rowArr);
+  });
+
+  // Send updated grid to the server
+  fetch("/update_current_grid", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ grid: currentGrid }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      console.log("Current grid updated successfully.");
+    } else {
+      console.error("Failed to update current grid.");
+    }
+  });
+}
+
+

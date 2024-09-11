@@ -77,12 +77,29 @@ def check_number(request, session):
 
     # Obtain the specific number in Xth row and Yth column (like input we are comparing)
     correct_number = answer[row][col]
+    current_grid = session.get('current_grid', [])
 
     # Checking if input equals correct number
     if correct_number == number:
+        current_grid[row][col] = number  # Update current_grid
+        session['current_grid'] = current_grid  # Save updated grid
         return jsonify({'correct': True})
     else:
         # If not remove 1 life
         session['lives'] -= 1
         # Return the newly set amount of lives (no default value as backup)
         return jsonify({'correct': False, 'lives': session['lives']})
+    
+
+def all_correct(number):
+    # Check if all instances of 'number' in the grid are correct
+    grid = session.get('current_grid', [])
+    n_correct_num = []
+    for i, row in enumerate(grid):
+        for j, cell in enumerate(row):
+            if cell == number:
+                n_correct_num.append(cell)
+                if n_correct_num.length == 9:
+                    print(f"\n Well Done you got all the {number}")
+                    return True
+    return False

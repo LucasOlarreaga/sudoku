@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, request
+from flask import Flask, render_template, session, request, jsonify
 from sudoku import generate_sudoku, get_row_col_indices, check_number # import functions from sudoku.py
 from dotenv import load_dotenv
 import os
@@ -17,15 +17,29 @@ def index():
     puzzle, answer = generate_sudoku()
     session['answer'] = answer  # Store the answer in the session
     session['puzzle'] = puzzle  # Store the answer in the session
+    session['current_grid'] = puzzle
     session['lives'] = 3  # Start with 3 lives
     session['hints'] = 3  # Start with 3 hints
     return render_template('index.html', hints=session['hints'], lives=session['lives'], puzzle=session['puzzle'], answer=session['answer'])
-
 
 @app.route('/check_number', methods=['POST'])
 def check():
     return check_number(request=request, session=session)
     
+@app.route('/get_current_grid', methods=['GET'])
+def get_current_grid():
+    return jsonify(session.get('current_grid', []))
+
+@app.route('/update_current_grid', methods=['POST'])
+def update_current_grid():
+    data = request.json
+    grid = data.get('grid', [])
+
+    # Store the grid in the session
+    session['current_grid'] = grid
+
+    return jsonify({'success': True})
+
 
 # Decorator runs before every template, meaking the returned dictionnary available
 @app.context_processor
