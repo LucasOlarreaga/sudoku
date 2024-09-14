@@ -28,7 +28,24 @@ function loseLife() {
 
 document.addEventListener("DOMContentLoaded", () => {
   updateLives(lives);
+
+  const numbersContainer = document.getElementById("numbers-container");
+  
+  // Create number markers from 1 to 9 only once
+  for (let i = 1; i <= 9; i++) {
+    const numberElement = document.createElement("div");
+    numberElement.className = "number";
+    numberElement.id = `number-${i}`;  // Assign a unique ID to each number
+    numberElement.textContent = i;
+    numberElement.style.visibility = "hidden";  // Hide them initially
+    numbersContainer.appendChild(numberElement);
+  }
+
+  // Check if any numbers are already filled in the grid
+  updateNumberMarkers();
 });
+
+
 
 function checkInput(input) {
   const value = input.value;
@@ -227,28 +244,22 @@ function updateCurrentGrid() {
 }
 
 function updateNumberMarkers() {
-  const numbersContainer = document.getElementById("numbers-container");
-  numbersContainer.innerHTML = '';  // Clear previous markers
-
   fetch("/get_filled_numbers")  // Assuming a route that returns filled_numbers
     .then(response => response.json())
     .then(data => {
       const filledNumbers = data.filled_numbers;
-      if (filledNumbers.length != 0){
-        for (let i = 1; i <= 9; i++) {
-          const numberElement = document.createElement("div");
-          numberElement.className = "number";
-          numberElement.textContent = i;
 
-          if (filledNumbers.includes(i)) {
-            numberElement.style.visibility = "visible";
-          } else {
-            numberElement.style.visibility = "hidden";
-          }
-
-          numbersContainer.appendChild(numberElement);
+      // Loop over the numbers from 1 to 9 and update their visibility
+      for (let i = 1; i <= 9; i++) {
+        const numberElement = document.getElementById(`number-${i}`);  // Access existing number div
+        if (filledNumbers.includes(i)) {
+          numberElement.style.visibility = "visible";  // Show the number if filled
+          console.log("All of", i, "have been found");  // Logging the number i
+        } else {
+          numberElement.style.visibility = "hidden";   // Hide the number if not filled
         }
-    }
+      }
     });
 }
+
 
