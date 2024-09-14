@@ -135,6 +135,38 @@
         opacity: 0.2;
       }
 
+      #number-buttons-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      @media (max-width: 600px) {
+        .number-button {
+          width: 40px;
+          height: 40px;
+          font-size: 18px;
+        }
+      }
+
+      .number-button {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        margin: 5px;
+        border-radius: 10px;
+        font-family: "Comic Sans MS", sans-serif;
+        color: white;
+        background-color: rgb(14, 95, 122);
+        border: none;
+      }
+
+      .number-button.disabled {
+        background-color: rgb(189, 201, 206);
+        color: red;
+        cursor: not-allowed;
+      }
+
       /* General styling for the number container */
       #numbers-container {
         position: absolute;
@@ -175,7 +207,6 @@
           <td>
             {% if puzzle[row_index][col_index] == 0 %}
             <input
-              type="tel"
               pattern="[0-9]*"
               inputmode="numeric"
               maxlength="1"
@@ -204,6 +235,17 @@
         </div>
       </div>
     </div>
+    <div id="number-buttons-container">
+      <button class="number-button" data-value="1">1</button>
+      <button class="number-button" data-value="2">2</button>
+      <button class="number-button" data-value="3">3</button>
+      <button class="number-button" data-value="4">4</button>
+      <button class="number-button" data-value="5">5</button>
+      <button class="number-button" data-value="6">6</button>
+      <button class="number-button" data-value="7">7</button>
+      <button class="number-button" data-value="8">8</button>
+      <button class="number-button" data-value="9">9</button>
+    </div>
 
     <input type="hidden" id="answer" value="{{ answer | tojson }}" />
     <div
@@ -214,6 +256,7 @@
     <div class="button-container">
       <button onclick="newPuzzle()">New</button>
       <button onclick="revealNumber()">Hint</button>
+      <button id="remove-button">Remove</button>
     </div>
 
     <!-- Link to the external script -->

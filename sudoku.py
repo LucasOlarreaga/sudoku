@@ -48,8 +48,6 @@ def get_row_col_indices(puzzle):
 
 # Checking if number is the correct one and returning the appropriate json response
 def check_number(request, session):
-    if session.get('lives', 3) <= 0: # Checking if lives equal 0 or less (in case)
-        return jsonify({'correct': False, 'lives': 0})
 
     data = request.json
     row = int(data.get('row', -1)) - 1 # Default to -1 if not provided
@@ -59,21 +57,20 @@ def check_number(request, session):
     # If empty returns nothing
     if number_str == '':
         # Return the previous amount of lives (aka no change, if empty default to 3)
-        return jsonify({'correct': False, 'lives': session.get('lives', 3)})
+        return jsonify({'correct': False})
 
     # If unable to convert string to int return nothing
     try:
         number = int(number_str)
     except ValueError:
-        return jsonify({'correct': False, 'lives': session.get('lives', 3)})
+        return jsonify({'correct': False})
 
     # Obtain answer from session data (if empty return [])
     answer = session.get('answer', [])
-    
 
     # Ensuring answer we just got fits the dimensions of grid (or else return nothing)
     if not (0 <= row < len(answer) and 0 <= col < len(answer[row])):
-        return jsonify({'correct': False, 'lives': session.get('lives', 3)})
+        return jsonify({'correct': False})
 
     # Obtain the specific number in Xth row and Yth column (like input we are comparing)
     correct_number = answer[row][col]
@@ -86,10 +83,8 @@ def check_number(request, session):
         all_correct(number)
         return jsonify({'correct': True})
     else:
-        # If not remove 1 life
-        session['lives'] -= 1
         # Return the newly set amount of lives (no default value as backup)
-        return jsonify({'correct': False, 'lives': session['lives']})
+        return jsonify({'correct': False})
     
 
 def all_correct(number):

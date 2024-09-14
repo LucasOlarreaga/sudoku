@@ -4,6 +4,7 @@ let hints = parseInt(document.querySelector("span#hints")?.textContent || "3", 1
 
 // Update lives and hearts
 function updateLives(newLives) {
+  console.log(newLives)
   lives = newLives;
   const hearts = Array.from(document.querySelectorAll(".life")).reverse();
 
@@ -25,26 +26,6 @@ function updateLives(newLives) {
 function loseLife() {
   updateLives(lives - 1);
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  updateLives(lives);
-
-  const numbersContainer = document.getElementById("numbers-container");
-  
-  // Create number markers from 1 to 9 only once
-  for (let i = 1; i <= 9; i++) {
-    const numberElement = document.createElement("div");
-    numberElement.className = "number";
-    numberElement.id = `number-${i}`;  // Assign a unique ID to each number
-    numberElement.textContent = i;
-    numberElement.style.visibility = "hidden";  // Hide them initially
-    numbersContainer.appendChild(numberElement);
-  }
-
-  // Check if any numbers are already filled in the grid
-  updateNumberMarkers();
-});
-
 
 
 function checkInput(input) {
@@ -70,9 +51,11 @@ function checkInput(input) {
     body: JSON.stringify({
       row: row,
       col: col,
-      number: value,
+      number: value
     }),
   })
+
+
     .then((response) => response.json())
     .then((data) => {
       if (data.correct) {
@@ -81,10 +64,11 @@ function checkInput(input) {
         checkCompletion();
         const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
         cell.disabled = true;
-        updateNumberMarkers();  // Update number markers
+        updateNumberButtons();
       } else {
         input.classList.add("incorrect");
-        updateLives(data.lives);
+        loseLife();
+        console.log("test", lives)
       }
     });
 }
@@ -175,8 +159,8 @@ function revealNumber() {
     .then(data => {
         // Update the grid after the correct input
         updateCurrentGrid().then(() => {
-          updateNumberMarkers();  // Update the number markers based on the correct input
-          checkCompletion();  // Check if the puzzle is now complete
+          checkCompletion(); // Check if the puzzle is now complete
+          updateNumberButtons();
         });
     })
     .catch(error => {
@@ -243,23 +227,105 @@ function updateCurrentGrid() {
   });
 }
 
-function updateNumberMarkers() {
-  fetch("/get_filled_numbers")  // Assuming a route that returns filled_numbers
-    .then(response => response.json())
-    .then(data => {
-      const filledNumbers = data.filled_numbers;
+let activeCell = null;
 
-      // Loop over the numbers from 1 to 9 and update their visibility
-      for (let i = 1; i <= 9; i++) {
-        const numberElement = document.getElementById(`number-${i}`);  // Access existing number div
-        if (filledNumbers.includes(i)) {
-          numberElement.style.visibility = "visible";  // Show the number if filled
-          console.log("All of", i, "have been found");  // Logging the number i
-        } else {
-          numberElement.style.visibility = "hidden";   // Hide the number if not filled
-        }
+// Listen for clicks on the Sudoku cells
+document.querySelectorAll("td input").forEach((cell) => {
+  cell.addEventListener("focus", function () {
+    activeCell = this;  // Set the currently focused cell as active
+  });
+});
+
+// Listen for number button clicks
+document.querySelectorAll(".number-button").forEach((button) => {
+  button.addEventListener("click", function () {
+    const number = this.getAttribute("data-value");
+    if (activeCell) {
+      activeCell.value = number;
+      checkInput(activeCell);  // Call your checkInput function to verify the number
+    }
+  });
+});
+
+// Update the buttons based on filled numbers
+function updateNumberButtons() {
+  get_filled_numbers().then(filledNumbers => {
+    document.querySelectorAll(".number-button").forEach((button) => {
+      const value = parseInt(button.getAttribute("data-value"));
+      if (filledNumbers.includes(value)) {
+        button.classList.add("disabled");
+        button.disabled = true;
+      } else {
+        button.classList.remove("disabled");
+        button.disabled = false;
       }
     });
+  });
 }
 
+// Call this function on page load and after each move to update buttons
+document.addEventListener("DOMContentLoaded", function () {
+  console.log("DOM fully loaded and parsed");
+  updateNumberButtons();  // Update buttons for fully filled numbers
+});
 
+
+function get_filled_numbers() {
+  return new Promise((resolve, reject) => {
+    fetch("/get_filled_numbers")  // Assuming a route that returns filled_numbers
+      .then(response => response.json())
+      .then(data => {
+        resolve(data.filled_numbers || []);  // Resolve with filled_numbers or an empty array
+      })
+      .catch(error => {
+        reject(error);  // Reject the promise if there's an error
+      });
+  });
+}
+
+// Function to detect if the user is on a mobile device
+function isMobile() {
+  return /Mobi|Android/i.test(navigator.userAgent);
+}
+
+// Enable or disable keyboard input based on device type
+function setKeyboardInput(enabled) {
+  document.querySelectorAll("td input").forEach((input) => {
+    if (enabled) {
+      input.removeEventListener("keydown", preventDefault);
+    } else {
+      input.addEventListener("keydown", preventDefault);
+    }
+  });
+}
+
+// Prevent default keyboard input behavior
+function preventDefault(event) {
+  event.preventDefault();
+}
+
+// On DOM content loaded
+document.addEventListener("DOMContentLoaded", function () {
+  console.log("DOM fully loaded and parsed");
+  setKeyboardInput(!isMobile());  // Enable keyboard input only if not on mobile
+});
+
+// You might need to call this function when the user switches between devices or screen sizes, e.g., on resize
+window.addEventListener("resize", function () {
+  setKeyboardInput(!isMobile());
+});
+
+
+// Function to handle removing incorrect inputs
+function removeIncorrectInputs() {
+  document.querySelectorAll("td input").forEach((input) => {
+    if (!input.disabled && input.value !== "") {
+      // Remove value if input is not disabled and is incorrect
+      input.value = "";
+      input.classList.remove("incorrect"); // Optionally, remove the incorrect styling
+    }
+  });
+}
+
+// Add event listener to the Remove button
+document.getElementById("remove-button").addEventListener("click", removeIncorrectInputs);

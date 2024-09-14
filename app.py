@@ -21,8 +21,6 @@ def index():
     session['answer'] = answer  # Store the answer in the session
     session['puzzle'] = puzzle  # Store the answer in the session
     session['current_grid'] = puzzle
-    session['lives'] = 3  # Start with 3 lives
-    session['hints'] = 3  # Start with 3 hints
     session['filled_numbers'] = []
 
     for i in range (1,10):
@@ -55,10 +53,9 @@ def utility_processor():
     return dict(get_row_col_indices=get_row_col_indices)
 
 @app.route('/get_filled_numbers')
-def get_filled_numbers(session = session):
+def get_filled_numbers():
     filled_numbers = session.get('filled_numbers', [])
     return jsonify({'filled_numbers': filled_numbers})
-
 
 # Running app
 if __name__ == '__main__':
