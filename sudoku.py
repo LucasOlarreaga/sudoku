@@ -83,6 +83,7 @@ def check_number(request, session):
     if correct_number == number:
         current_grid[row][col] = number  # Update current_grid
         session['current_grid'] = current_grid  # Save updated grid
+        all_correct(number)
         return jsonify({'correct': True})
     else:
         # If not remove 1 life
@@ -99,7 +100,7 @@ def all_correct(number):
         for j, cell in enumerate(row):
             if cell == number:
                 n_correct_num.append(cell)
-                if n_correct_num.length == 9:
-                    print(f"\n Well Done you got all the {number}")
+                if len(n_correct_num) == 9:
+                    session['filled_numbers'].append(number)
                     return True
     return False

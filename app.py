@@ -1,8 +1,7 @@
 from flask import Flask, render_template, session, request, jsonify
-from sudoku import generate_sudoku, get_row_col_indices, check_number # import functions from sudoku.py
+from sudoku import generate_sudoku, get_row_col_indices, check_number, all_correct # import functions from sudoku.py
 from dotenv import load_dotenv
 import os
-
 
 # Initiate app
 app = Flask(__name__)
@@ -14,12 +13,20 @@ app.secret_key = os.getenv('SECRET_KEY', 'fallback_key')
 # Base route which generates sudoku, and sets variables
 @app.route('/')
 def index():
-    puzzle, answer = generate_sudoku()
+    try:
+        puzzle, answer = generate_sudoku()
+    except Exception as e:
+        return jsonify({'error': str(e)})
+    
     session['answer'] = answer  # Store the answer in the session
     session['puzzle'] = puzzle  # Store the answer in the session
     session['current_grid'] = puzzle
     session['lives'] = 3  # Start with 3 lives
     session['hints'] = 3  # Start with 3 hints
+    session['filled_numbers'] = []
+
+    for i in range (1,10):
+        all_correct(i)
     return render_template('index.html', hints=session['hints'], lives=session['lives'], puzzle=session['puzzle'], answer=session['answer'])
 
 @app.route('/check_number', methods=['POST'])
@@ -46,6 +53,11 @@ def update_current_grid():
 # This serves to give appropriate row and column values since some seemed to misalign
 def utility_processor():
     return dict(get_row_col_indices=get_row_col_indices)
+
+@app.route('/get_filled_numbers')
+def get_filled_numbers(session = session):
+    filled_numbers = session.get('filled_numbers', [])
+    return jsonify({'filled_numbers': filled_numbers})
 
 
 # Running app

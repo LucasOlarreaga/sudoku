@@ -64,6 +64,7 @@ function checkInput(input) {
         checkCompletion();
         const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
         cell.disabled = true;
+        updateNumberMarkers();  // Update number markers
       } else {
         input.classList.add("incorrect");
         updateLives(data.lives);
@@ -109,6 +110,7 @@ function revealNumber() {
   const answer = JSON.parse(document.getElementById("answer").value);
   let board = [];
 
+  // Gather the current board state
   document.querySelectorAll("tr").forEach((row, i) => {
     let rowArr = [];
     row.querySelectorAll("td").forEach((cell, j) => {
@@ -118,6 +120,7 @@ function revealNumber() {
     board.push(rowArr);
   });
 
+  // Find all empty cells on the board
   let emptyCells = [];
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
@@ -127,19 +130,50 @@ function revealNumber() {
     }
   }
 
+  // If there are empty cells and hints are available
   if (emptyCells.length > 0 && hints > 0) {
     const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-    const row = randomCell.row + 1;
-    const col = randomCell.col + 1;
-    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-    cell.value = answer[randomCell.row][randomCell.col];
-    cell.disabled = true;
+    const row = randomCell.row;
+    const col = randomCell.col;
+    const cell = document.querySelector(`[data-row="${row + 1}"][data-col="${col + 1}"]`);
 
+    // Reveal the correct number
+    const correctNumber = answer[row][col];
+    cell.value = correctNumber;
+    cell.disabled = true;  // Disable the input after revealing the correct number
+
+    // Make an API call to check_number to validate the revealed number
+    fetch("/check_number", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        row: row + 1,  // Send 1-based row and col indices to the backend
+        col: col + 1,
+        number: correctNumber
+      }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update the grid after the correct input
+        updateCurrentGrid().then(() => {
+          updateNumberMarkers();  // Update the number markers based on the correct input
+          checkCompletion();  // Check if the puzzle is now complete
+        });
+    })
+    .catch(error => {
+      console.error("Error checking the revealed number:", error);
+    });
+
+    // Use a hint
     useHint();
-    updateCurrentGrid(); // Ensure the current grid is up-to-date
-    checkCompletion(); // Check if the puzzle is completed
+  } else {
+    console.error('No empty cells or hints exhausted');
   }
 }
+
+
 
 function useHint() {
   hints -= 1;
@@ -159,27 +193,8 @@ function useHint() {
   }
 }
 
-function updateMarkers(number) {
-  if (!completedNumbers.includes(number)) {
-    completedNumbers.push(number);
-    completedNumbers.sort((a, b) => a - b); // Sort numbers in ascending order
-    
-    // Clear the marker container
-    const markerContainer = document.getElementById("marker-container");
-    markerContainer.innerHTML = "";
-    
-    // Add sorted markers
-    completedNumbers.forEach(num => {
-      const marker = document.createElement("div");
-      marker.className = "marker";
-      marker.setAttribute("data-number", num);
-      marker.textContent = num;
-      markerContainer.appendChild(marker);
-    });
-  }
-}
-
 function updateCurrentGrid() {
+  return new Promise((resolve) => {
   const currentGrid = [];
 
   document.querySelectorAll("tr").forEach((row, i) => {
@@ -206,7 +221,34 @@ function updateCurrentGrid() {
     } else {
       console.error("Failed to update current grid.");
     }
+    resolve();  // Resolve the promise here
+         });
   });
 }
 
+function updateNumberMarkers() {
+  const numbersContainer = document.getElementById("numbers-container");
+  numbersContainer.innerHTML = '';  // Clear previous markers
+
+  fetch("/get_filled_numbers")  // Assuming a route that returns filled_numbers
+    .then(response => response.json())
+    .then(data => {
+      const filledNumbers = data.filled_numbers;
+      if (filledNumbers.length != 0){
+        for (let i = 1; i <= 9; i++) {
+          const numberElement = document.createElement("div");
+          numberElement.className = "number";
+          numberElement.textContent = i;
+
+          if (filledNumbers.includes(i)) {
+            numberElement.style.visibility = "visible";
+          } else {
+            numberElement.style.visibility = "hidden";
+          }
+
+          numbersContainer.appendChild(numberElement);
+        }
+    }
+    });
+}
 

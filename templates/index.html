@@ -129,11 +129,33 @@
       .hint.used {
         opacity: 0.2;
       }
+
+      #numbers-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        right: 20px; /* Adjust as needed */
+        top: 180px;
+        transform: translateY(-50%);
+        gap: 17px;
+      }
+
+      #numbers-container .number {
+        font-size: 18px;
+        font-family: "Comic Sans MS", sans-serif;
+        color: green;
+        visibility: hidden; /* Hidden until revealed */
+      }
     </style>
     <h1>Sudoku Puzzle</h1>
   </head>
   <body>
     <div id="container">
+      <div id="numbers-container">
+        <!-- Filled numbers will appear here -->
+      </div>
       <table>
         {% set indices = get_row_col_indices(puzzle) %} {% for row_index in
         range(puzzle|length) %}
