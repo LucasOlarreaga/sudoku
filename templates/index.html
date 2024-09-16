@@ -60,13 +60,39 @@
         background-color: white;
       }
 
+      .highlighted {
+        background-color: rgba(
+          0,
+          128,
+          255,
+          0.3
+        ); /* Light blue background for highlighting */
+        box-shadow: 0 0 10px rgba(0, 128, 255, 0.8); /* Optional: Add glow effect */
+        z-index: 1; /* Ensure highlighted cell is on top visually */
+      }
+
+      /* Optional: For thicker borders */
+      .thick-border {
+        border: 2px solid black; /* Creates a thicker border for certain rows/columns */
+      }
+
+      /* Responsive adjustments if necessary */
+      @media (max-width: 600px) {
+        td {
+          width: 30px; /* Adjust the size for smaller screens */
+          height: 30px;
+        }
+      }
+
       td {
         width: 40px;
         height: 40px;
         text-align: center;
         font-family: "Comic Sans MS", sans-serif;
         border: 1px solid #000;
+        position: relative;
         padding: 0;
+        background-color: white;
       }
 
       input {
@@ -178,11 +204,6 @@
         justify-content: center;
       }
 
-      .highlighted {
-        border: 2px solid blue; /* Highlight color for selection */
-        box-shadow: 0 0 5px rgba(0, 0, 255, 0.5); /* Optional glowing effect */
-      }
-
       input {
         pointer-events: none; /* Prevent default pointer events to avoid showing the cursor */
       }
@@ -213,22 +234,28 @@
         <!-- Filled numbers will appear here -->
       </div>
       <table>
-        {% set indices = get_row_col_indices(puzzle) %} {% for row_index in
-        range(puzzle|length) %}
+        {% for row_index in range(puzzle|length) %}
         <tr>
           {% for col_index in range(puzzle[row_index]|length) %}
-          <td>
-            {% if puzzle[row_index][col_index] == 0 %}
+          <td
+            class="{% if row_index % 3 == 0 and col_index == 0 %}thick-border{% endif %}"
+          >
             <input
-              pattern="[0-9]*"
-              inputmode="numeric"
-              maxlength="1"
+              type="number"
               class="sudoku-input"
               data-row="{{ row_index + 1 }}"
               data-col="{{ col_index + 1 }}"
               oninput="checkInput(this)"
+              pattern="[0-9]*"
+              inputmode="numeric"
+              maxlength="1"
+              style="
+                width: 100%;
+                height: 100%;
+                text-align: center;
+                border: none;
+              "
             />
-            {% else %} {{ puzzle[row_index][col_index] }} {% endif %}
           </td>
           {% endfor %}
         </tr>
