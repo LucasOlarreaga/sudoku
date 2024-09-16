@@ -288,14 +288,15 @@ function isMobile() {
   return /Mobi|Android/i.test(navigator.userAgent);
 }
 
-// Prevent focus event on inputs for mobile devices
-// Function to prevent keyboard input on mobile devices
-// Prevent keyboard input on mobile devices
+// Prevent keyboard input on mobile devices by adding `readonly`
 function preventKeyboard() {
   if (isMobile()) {
       document.querySelectorAll("td").forEach((cell) => {
           const input = cell.querySelector("input");
           if (input) {
+              // Set input to readonly to prevent keyboard pop-up
+              input.setAttribute("readonly", "readonly");
+
               // Highlight the box when the td is clicked
               cell.addEventListener("click", function () {
                   // Highlight the cell itself
@@ -303,51 +304,45 @@ function preventKeyboard() {
                       td.classList.remove('highlighted'); // Remove highlight from all cells
                   });
                   cell.classList.add('highlighted'); // Add highlight to the clicked cell
-                  // Instead of focusing input, we just show the current number if you want
-                  // e.g. display the current number in some UI but don't show input.
+                  
+                  // Optionally select the current input without triggering the keyboard
+                  input.classList.add('highlighted'); // Optional if highlighting input is needed
+                  setTimeout(() => input.blur(), 0); // Blur the input to immediately hide keyboard
+                  
+                  // Note: You may want to manage what happens on focusing the highlighted box
+                  // without the need of the keyboard.
               });
 
-              // Prevent the keyboard from appearing by preventing default events
-              input.addEventListener("focus", function (event) {
-                  event.preventDefault(); // Prevents default focus behavior
-              });
+              // Optionally you can bind other interactions if needed here
           }
       });
   }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  preventKeyboard(); // Call the preventKeyboard function
-});
-
-
-document.querySelectorAll("td").forEach((cell) => {
-  const input = cell.querySelector("input");
-  if (input) {
-    cell.addEventListener("click", function () {
-      input.classList.add('highlighted');
-      input.classList.add('enabled-input');
-      input.focus(); // Optional: this may still trigger cursor unless prevented by previous logic.
-    });
-
-    input.addEventListener("blur", function () {
-      input.classList.remove('highlighted');
-      input.classList.remove('enabled-input');
-    });
-  }
-});
-
-
-// If you want to allow keyboard input only on PC, keep your existing logic
-function setKeyboardInput(enabled) {
-  document.querySelectorAll("td input").forEach((input) => {
-    if (enabled) {
-      input.removeEventListener("keydown", preventDefault);
-    } else {
-      input.addEventListener("keydown", preventDefault);
-    }
+// To handle restoring focus to input by overriding readonly when the button is pressed
+function handleNumberButtonClicks() {
+  document.querySelectorAll(".number-button").forEach((button) => {
+      button.addEventListener("click", function () {
+          const value = this.getAttribute("data-value");
+          const highlightedCell = document.querySelector('td.highlighted');
+          const input = highlightedCell ? highlightedCell.querySelector("input") : null;
+          if (input) {
+              input.removeAttribute("readonly"); // Allow input for the specific value
+              input.value = value; // Set value when the button is clicked
+              input.dispatchEvent(new Event('input')); // Dispatch input event if necessary
+              setTimeout(() => {
+                  input.setAttribute("readonly", "readonly"); // Set back to readonly
+              }, 0); // Delay until after interaction to allow observation by the user
+          }
+      });
   });
 }
+
+// Call this function when the DOM is fully loaded
+document.addEventListener("DOMContentLoaded", function () {
+  preventKeyboard(); // Call the preventKeyboard function
+  handleNumberButtonClicks(); // Setup button handlers
+});
 
 
 // Function to handle removing incorrect inputs
