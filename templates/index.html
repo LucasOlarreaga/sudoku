@@ -132,6 +132,11 @@
         color: white;
       }
 
+      :disabled {
+        background-color: #f0f0f0; /* Light grey background for disabled inputs */
+        color: rgb(14, 95, 122); /* Grey text color for disabled inputs */
+      }
+
       tr:nth-child(3) td,
       tr:nth-child(6) td {
         border-bottom: 2px solid #000;
@@ -340,8 +345,8 @@
     ></div>
 
     <div class="button-container">
-      <button onclick="newPuzzle()">New</button>
       <button onclick="revealNumber()">Hint</button>
+      <button onclick="newPuzzle()">New</button>
       <button id="remove-button">Remove</button>
     </div>
 
