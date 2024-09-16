@@ -283,6 +283,26 @@ function get_filled_numbers() {
   });
 }
 
+// Function to handle removing incorrect inputs
+function removeIncorrectInputs() {
+  document.querySelectorAll("td input").forEach((input) => {
+    if (!input.disabled && input.value !== "") {
+      // Remove value if input is not disabled and is incorrect
+      input.value = "";
+      input.classList.remove("incorrect"); // Optionally, remove the incorrect styling
+    }
+  });
+}
+
+// Add event listener to the Remove button
+document.getElementById("remove-button").addEventListener("click", removeIncorrectInputs);
+
+
+// Function to detect if the user is on a mobile device
+function isMobile() {
+  return /Mobi|Android/i.test(navigator.userAgent);
+}
+
 // Function to remove highlights that are no longer needed
 function clearHighlights() {
   document.querySelectorAll('td').forEach(td => {
@@ -350,18 +370,3 @@ document.addEventListener("DOMContentLoaded", function () {
   preventKeyboard(); // Call the preventKeyboard function
   handleNumberButtonClicks(); // Setup button handlers
 });
-
-
-// Function to handle removing incorrect inputs
-function removeIncorrectInputs() {
-  document.querySelectorAll("td input").forEach((input) => {
-    if (!input.disabled && input.value !== "") {
-      // Remove value if input is not disabled and is incorrect
-      input.value = "";
-      input.classList.remove("incorrect"); // Optionally, remove the incorrect styling
-    }
-  });
-}
-
-// Add event listener to the Remove button
-document.getElementById("remove-button").addEventListener("click", removeIncorrectInputs);
