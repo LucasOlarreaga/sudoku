@@ -29,6 +29,7 @@
       .button-container {
         text-align: center;
         margin-top: 20px;
+        padding: 0px;
       }
 
       .button-container button {
@@ -170,9 +171,12 @@
       #number-buttons-container {
         display: flex;
         justify-content: center;
+        align-items: center;
         margin-top: 20px;
+        gap: 10px; /* Space between buttons */
         flex-wrap: nowrap; /* Prevent wrapping */
-        gap: 10px; /* Add space between buttons */
+        max-width: 100%; /* Make sure the container fits within the screen width */
+        padding: 0 10px; /* Add some padding to the container */
       }
 
       /* Button styling */
@@ -186,19 +190,22 @@
         color: white;
         background-color: rgb(14, 95, 122);
         border: none;
+        flex-shrink: 1; /* Allow the buttons to shrink when space is limited */
       }
 
       /* Responsive styling for smaller screens */
       @media (max-width: 600px) {
         #number-buttons-container {
-          justify-content: space-evenly; /* Ensure buttons are spaced evenly on smaller screens */
+          gap: 5px; /* Reduce space between buttons */
+          padding: 0 5px; /* Adjust padding on smaller screens */
         }
 
         .number-button {
-          width: 40px; /* Decrease button size */
-          height: 40px;
-          font-size: 18px; /* Decrease font size */
-          margin: 3px; /* Decrease margin */
+          width: 35px; /* Decrease button size */
+          height: 35px;
+          font-size: 16px; /* Decrease font size */
+          margin: 3px; /* Decrease margin between buttons */
+          flex-shrink: 1; /* Ensure buttons shrink if needed */
         }
       }
 
