@@ -298,7 +298,7 @@ function removeIncorrectInputs() {
 document.getElementById("remove-button").addEventListener("click", removeIncorrectInputs);
 
 
-// Function to detect if the user is on a mobile device
+// // Function to detect if the user is on a mobile device
 function isMobile() {
   return /Mobi|Android/i.test(navigator.userAgent);
 }
@@ -310,7 +310,7 @@ function clearHighlights() {
   });
 }
 
-// Adjust the preventKeyboard function to include highlight clearing
+// Prevent keyboard input on mobile devices by adding `readonly`
 function preventKeyboard() {
   if (isMobile()) {
       document.querySelectorAll("td").forEach((cell) => {
@@ -323,37 +323,35 @@ function preventKeyboard() {
               cell.addEventListener("click", function () {
                   clearHighlights(); // Clear any existing highlights
                   cell.classList.add('highlighted'); // Add highlight to the clicked cell
-                  
-                  // Optionally selecting the input without triggering the keyboard
-                  input.classList.add('highlighted'); // Optional if highlighting input is needed
-                  setTimeout(() => input.blur(), 0); // Blur the input to immediately hide the keyboard
+                  input.classList.add('highlighted'); // Optional: highlight input visually if desired
+                  setTimeout(() => input.blur(), 0); // Blur the input to hide the keyboard
               });
           }
       });
   }
 }
 
-// Adjust the number button click behavior to clear highlights after input
+// Handle value input from number buttons
 function handleNumberButtonClicks() {
   document.querySelectorAll(".number-button").forEach((button) => {
       button.addEventListener("click", function () {
           const value = this.getAttribute("data-value");
           const highlightedCell = document.querySelector('td.highlighted');
-          const input = highlightedCell ? highlightedCell.querySelector("input") : null;
-          if (input) {
-              input.removeAttribute("readonly"); // Allow input for the specific value
-              input.value = value; // Set value when the button is clicked
-              input.dispatchEvent(new Event('input')); // Dispatch input event if necessary
-              setTimeout(() => {
+          if (highlightedCell) {
+              const input = highlightedCell.querySelector("input");
+              if (input) {
+                  input.removeAttribute("readonly"); // Allow input for the specific value
+                  input.value = value; // Set value when the button is clicked
+                  input.dispatchEvent(new Event('input')); // Dispatch input event if necessary
                   input.setAttribute("readonly", "readonly"); // Set back to readonly
                   clearHighlights(); // Clear highlights after input
-              }, 0); // Delay until after interaction
+              }
           }
       });
   });
 }
 
-// Update remove button behavior to clear highlights from previously selected cells
+// Handle the remove button to clear highlighted cells
 document.getElementById("remove-button").addEventListener("click", function () {
   const highlightedCell = document.querySelector('td.highlighted');
   if (highlightedCell) {
