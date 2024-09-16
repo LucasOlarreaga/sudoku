@@ -36,7 +36,7 @@
         cursor: pointer;
         transition: 1s;
         height: 35px;
-        width: 60px;
+        width: 80px;
         margin-right: 20px;
       }
 
@@ -176,6 +176,19 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
+      }
+
+      .highlighted {
+        border: 2px solid blue; /* Change this to whatever highlight color you prefer */
+        box-shadow: 0 0 5px rgba(0, 0, 255, 0.5); /* Optional: add a subtle glow effect */
+      }
+
+      input {
+        pointer-events: none; /* Prevent default pointer events to avoid showing the cursor */
+      }
+
+      .enabled-input {
+        pointer-events: auto; /* Allow interactions for enabled inputs (from JS) */
       }
 
       /* On smaller screens, reduce the size or reposition the number markers */

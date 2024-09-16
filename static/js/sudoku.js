@@ -288,7 +288,51 @@ function isMobile() {
   return /Mobi|Android/i.test(navigator.userAgent);
 }
 
-// Enable or disable keyboard input based on device type
+// Prevent focus event on inputs for mobile devices
+// Function to prevent keyboard input on mobile devices
+function preventKeyboard() {
+  if (isMobile()) {
+    document.querySelectorAll("td input").forEach((input) => {
+      input.addEventListener("focus", function (event) {
+        event.preventDefault(); // Prevent the default focus event
+        input.classList.add('highlighted'); // Add highlight class
+        input.classList.add('enabled-input'); // Enable pointer events temporarily
+      });
+      
+      input.addEventListener("blur", function () {
+        input.classList.remove('highlighted'); // Remove highlight class when focus is lost
+        input.classList.remove('enabled-input'); // Reset pointer events
+      });
+    });
+  }
+}
+
+
+document.querySelectorAll("td").forEach((cell) => {
+  const input = cell.querySelector("input");
+  if (input) {
+    cell.addEventListener("click", function () {
+      input.classList.add('highlighted');
+      input.classList.add('enabled-input');
+      input.focus(); // Optional: this may still trigger cursor unless prevented by previous logic.
+    });
+
+    input.addEventListener("blur", function () {
+      input.classList.remove('highlighted');
+      input.classList.remove('enabled-input');
+    });
+  }
+});
+
+
+
+
+// Call this function when the DOM is fully loaded
+document.addEventListener("DOMContentLoaded", function () {
+  preventKeyboard(); // Prevent keyboard input on mobile devices
+});
+
+// If you want to allow keyboard input only on PC, keep your existing logic
 function setKeyboardInput(enabled) {
   document.querySelectorAll("td input").forEach((input) => {
     if (enabled) {
@@ -298,22 +342,6 @@ function setKeyboardInput(enabled) {
     }
   });
 }
-
-// Prevent default keyboard input behavior
-function preventDefault(event) {
-  event.preventDefault();
-}
-
-// On DOM content loaded
-document.addEventListener("DOMContentLoaded", function () {
-  console.log("DOM fully loaded and parsed");
-  setKeyboardInput(!isMobile());  // Enable keyboard input only if not on mobile
-});
-
-// You might need to call this function when the user switches between devices or screen sizes, e.g., on resize
-window.addEventListener("resize", function () {
-  setKeyboardInput(!isMobile());
-});
 
 
 // Function to handle removing incorrect inputs

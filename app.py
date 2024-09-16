@@ -21,11 +21,13 @@ def index():
     session['answer'] = answer  # Store the answer in the session
     session['puzzle'] = puzzle  # Store the answer in the session
     session['current_grid'] = puzzle
+    session['lives'] = 3
+    session['hints'] = 3
     session['filled_numbers'] = []
 
     for i in range (1,10):
         all_correct(i)
-    return render_template('index.html', hints=session['hints'], lives=session['lives'], puzzle=session['puzzle'], answer=session['answer'])
+    return render_template('index.html', puzzle=session['puzzle'], answer=session['answer'], lives=session['lives'], hints=session['hints'])
 
 @app.route('/check_number', methods=['POST'])
 def check():
