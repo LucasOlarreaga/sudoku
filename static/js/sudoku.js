@@ -290,22 +290,35 @@ function isMobile() {
 
 // Prevent focus event on inputs for mobile devices
 // Function to prevent keyboard input on mobile devices
+// Prevent keyboard input on mobile devices
 function preventKeyboard() {
   if (isMobile()) {
-    document.querySelectorAll("td input").forEach((input) => {
-      input.addEventListener("focus", function (event) {
-        event.preventDefault(); // Prevent the default focus event
-        input.classList.add('highlighted'); // Add highlight class
-        input.classList.add('enabled-input'); // Enable pointer events temporarily
+      document.querySelectorAll("td").forEach((cell) => {
+          const input = cell.querySelector("input");
+          if (input) {
+              // Highlight the box when the td is clicked
+              cell.addEventListener("click", function () {
+                  // Highlight the cell itself
+                  document.querySelectorAll("td").forEach(td => {
+                      td.classList.remove('highlighted'); // Remove highlight from all cells
+                  });
+                  cell.classList.add('highlighted'); // Add highlight to the clicked cell
+                  // Instead of focusing input, we just show the current number if you want
+                  // e.g. display the current number in some UI but don't show input.
+              });
+
+              // Prevent the keyboard from appearing by preventing default events
+              input.addEventListener("focus", function (event) {
+                  event.preventDefault(); // Prevents default focus behavior
+              });
+          }
       });
-      
-      input.addEventListener("blur", function () {
-        input.classList.remove('highlighted'); // Remove highlight class when focus is lost
-        input.classList.remove('enabled-input'); // Reset pointer events
-      });
-    });
   }
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+  preventKeyboard(); // Call the preventKeyboard function
+});
 
 
 document.querySelectorAll("td").forEach((cell) => {
@@ -324,13 +337,6 @@ document.querySelectorAll("td").forEach((cell) => {
   }
 });
 
-
-
-
-// Call this function when the DOM is fully loaded
-document.addEventListener("DOMContentLoaded", function () {
-  preventKeyboard(); // Prevent keyboard input on mobile devices
-});
 
 // If you want to allow keyboard input only on PC, keep your existing logic
 function setKeyboardInput(enabled) {
