@@ -3,7 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sudoku Puzzles</title>
+    <title>Sudoku</title>
+    <link
+      type="image/x-icon"
+      rel="icon"
+      type="image/png"
+      href="{{ url_for('static', filename='icon.png') }}"
+    />
     <style>
       html {
         background-color: rgb(188, 225, 239);
@@ -165,26 +171,35 @@
         display: flex;
         justify-content: center;
         margin-top: 20px;
+        flex-wrap: nowrap; /* Prevent wrapping */
+        gap: 10px; /* Add space between buttons */
       }
 
-      @media (max-width: 600px) {
-        .number-button {
-          width: 40px;
-          height: 40px;
-          font-size: 18px;
-        }
-      }
-
+      /* Button styling */
       .number-button {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 22px;
         margin: 5px;
         border-radius: 10px;
         font-family: "Comic Sans MS", sans-serif;
         color: white;
         background-color: rgb(14, 95, 122);
         border: none;
+      }
+
+      /* Responsive styling for smaller screens */
+      @media (max-width: 600px) {
+        #number-buttons-container {
+          justify-content: space-evenly; /* Ensure buttons are spaced evenly on smaller screens */
+        }
+
+        .number-button {
+          width: 40px; /* Decrease button size */
+          height: 40px;
+          font-size: 18px; /* Decrease font size */
+          margin: 3px; /* Decrease margin */
+        }
       }
 
       .number-button.disabled {
