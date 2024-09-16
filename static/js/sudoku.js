@@ -283,12 +283,14 @@ function get_filled_numbers() {
   });
 }
 
-// Function to detect if the user is on a mobile device
-function isMobile() {
-  return /Mobi|Android/i.test(navigator.userAgent);
+// Function to remove highlights that are no longer needed
+function clearHighlights() {
+  document.querySelectorAll('td').forEach(td => {
+      td.classList.remove('highlighted');
+  });
 }
 
-// Prevent keyboard input on mobile devices by adding `readonly`
+// Adjust the preventKeyboard function to include highlight clearing
 function preventKeyboard() {
   if (isMobile()) {
       document.querySelectorAll("td").forEach((cell) => {
@@ -299,27 +301,19 @@ function preventKeyboard() {
 
               // Highlight the box when the td is clicked
               cell.addEventListener("click", function () {
-                  // Highlight the cell itself
-                  document.querySelectorAll("td").forEach(td => {
-                      td.classList.remove('highlighted'); // Remove highlight from all cells
-                  });
+                  clearHighlights(); // Clear any existing highlights
                   cell.classList.add('highlighted'); // Add highlight to the clicked cell
                   
-                  // Optionally select the current input without triggering the keyboard
+                  // Optionally selecting the input without triggering the keyboard
                   input.classList.add('highlighted'); // Optional if highlighting input is needed
-                  setTimeout(() => input.blur(), 0); // Blur the input to immediately hide keyboard
-                  
-                  // Note: You may want to manage what happens on focusing the highlighted box
-                  // without the need of the keyboard.
+                  setTimeout(() => input.blur(), 0); // Blur the input to immediately hide the keyboard
               });
-
-              // Optionally you can bind other interactions if needed here
           }
       });
   }
 }
 
-// To handle restoring focus to input by overriding readonly when the button is pressed
+// Adjust the number button click behavior to clear highlights after input
 function handleNumberButtonClicks() {
   document.querySelectorAll(".number-button").forEach((button) => {
       button.addEventListener("click", function () {
@@ -332,11 +326,24 @@ function handleNumberButtonClicks() {
               input.dispatchEvent(new Event('input')); // Dispatch input event if necessary
               setTimeout(() => {
                   input.setAttribute("readonly", "readonly"); // Set back to readonly
-              }, 0); // Delay until after interaction to allow observation by the user
+                  clearHighlights(); // Clear highlights after input
+              }, 0); // Delay until after interaction
           }
       });
   });
 }
+
+// Update remove button behavior to clear highlights from previously selected cells
+document.getElementById("remove-button").addEventListener("click", function () {
+  const highlightedCell = document.querySelector('td.highlighted');
+  if (highlightedCell) {
+      const input = highlightedCell.querySelector("input");
+      if (input) {
+          input.value = ""; // Clear the input value
+          clearHighlights(); // Clear highlights
+      }
+  }
+});
 
 // Call this function when the DOM is fully loaded
 document.addEventListener("DOMContentLoaded", function () {
