@@ -240,6 +240,7 @@
           <td
             class="{% if row_index % 3 == 0 and col_index == 0 %}thick-border{% endif %}"
           >
+            {% if puzzle[row_index][col_index] == 0 %}
             <input
               type="number"
               class="sudoku-input"
@@ -256,6 +257,9 @@
                 border: none;
               "
             />
+            {% else %} {{ puzzle[row_index][col_index] }}
+            <!-- Display the number directly -->
+            {% endif %}
           </td>
           {% endfor %}
         </tr>
