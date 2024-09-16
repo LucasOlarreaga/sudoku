@@ -298,12 +298,12 @@ function removeIncorrectInputs() {
 document.getElementById("remove-button").addEventListener("click", removeIncorrectInputs);
 
 
-// // Function to detect if the user is on a mobile device
+// Function to detect if the user is on a mobile device
 function isMobile() {
   return /Mobi|Android/i.test(navigator.userAgent);
 }
 
-// Function to remove highlights that are no longer needed
+// Function to remove highlights from all cells
 function clearHighlights() {
   document.querySelectorAll('td').forEach(td => {
       td.classList.remove('highlighted');
@@ -322,9 +322,8 @@ function preventKeyboard() {
               // Highlight the box when the td is clicked
               cell.addEventListener("click", function () {
                   clearHighlights(); // Clear any existing highlights
-                  cell.classList.add('highlighted'); // Add highlight to the clicked cell
-                  input.classList.add('highlighted'); // Optional: highlight input visually if desired
-                  setTimeout(() => input.blur(), 0); // Blur the input to hide the keyboard
+                  cell.classList.add('highlighted'); // Highlight this cell
+                  setTimeout(() => input.blur(), 0); // Blur the input to immediately hide keyboard
               });
           }
       });
@@ -340,11 +339,11 @@ function handleNumberButtonClicks() {
           if (highlightedCell) {
               const input = highlightedCell.querySelector("input");
               if (input) {
-                  input.removeAttribute("readonly"); // Allow input for the specific value
+                  // Set the value and dispatch an input event
                   input.value = value; // Set value when the button is clicked
-                  input.dispatchEvent(new Event('input')); // Dispatch input event if necessary
-                  input.setAttribute("readonly", "readonly"); // Set back to readonly
-                  clearHighlights(); // Clear highlights after input
+                  input.dispatchEvent(new Event('input')); // Dispatch input event if needed
+                  // Highlights will be cleared in clearHighlights() after input
+                  clearHighlights(); // Optionally clear highlights here
               }
           }
       });
