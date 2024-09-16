@@ -27,7 +27,9 @@
       }
 
       .button-container {
-        text-align: center;
+        display: flex; /* Use flexbox to handle centering */
+        justify-content: center; /* Center buttons horizontally */
+        align-items: center; /* Center buttons vertically */
         margin-top: 20px;
         padding: 0px;
       }
@@ -36,15 +38,27 @@
         text-align: center;
         color: white;
         border: none;
-        font-size: small;
-        background-color: rgb(76, 134, 126);
         font-size: 16px;
+        background-color: rgb(76, 134, 126);
         border-radius: 15px;
         cursor: pointer;
         transition: 1s;
         height: 35px;
         width: 80px;
         margin-right: 20px;
+        display: flex;
+        justify-content: center; /* Center content horizontally */
+        align-items: center; /* Center content vertically */
+        padding: 0;
+      }
+
+      #remove-button {
+        background-color: rgb(
+          189,
+          54,
+          47
+        ); /* Optional: change background color */
+        color: white; /* Optional: adjust text color */
       }
 
       #container {
@@ -181,7 +195,6 @@
         padding: 0 10px; /* Add some padding to the container */
       }
 
-      /* Button styling */
       /* Button styling */
       .number-button {
         width: 50px;
