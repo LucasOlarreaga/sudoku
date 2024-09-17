@@ -1,124 +1,125 @@
-// Initialize lives variable
+// Initialize lives and hints variables
 let lives = parseInt(document.querySelector("span#lives")?.textContent || "3", 10);
 let hints = parseInt(document.querySelector("span#hints")?.textContent || "3", 10);
 
-// Update lives and hearts
+// Function to update lives and the display of hearts
 function updateLives(newLives) {
-  console.log(newLives)
-  lives = newLives;
-  const hearts = Array.from(document.querySelectorAll(".life")).reverse();
+  lives = newLives; // Set current lives to new value
+  const hearts = Array.from(document.querySelectorAll(".life")); // Get the heart elements
 
+  // Update each heart's display based on remaining lives
   hearts.forEach((heart, index) => {
-    if (index < lives) {
-      heart.classList.remove("used");
-    } else {
-      heart.classList.add("used");
-    }
+    heart.classList.toggle("used", index >= lives); // Toggle visibility based on lives
   });
 
+  // If no lives are left, display a game over message and disable inputs
   if (lives <= 0) {
-    document.getElementById("message").textContent = "Game Over! You've lost all your lives.";
-    document.getElementById("message").style.color = "red";
-    disableAllInputs();
+    displayMessage("Game Over! You've lost all your lives.", "red");
+    disableAllInputs(); // Call function to disable all inputs
   }
 }
 
+// Function to reduce the lives by one when a life is lost
 function loseLife() {
-  updateLives(lives - 1);
+  updateLives(lives - 1); // Call updateLives with decreased lives
 }
 
-
+// Function to check the input value of the Sudoku cell
 function checkInput(input) {
-  const value = input.value;
-  const row = input.getAttribute("data-row");
-  const col = input.getAttribute("data-col");
+  const value = input.value; // Get current input value
+  const row = input.getAttribute("data-row"); // Get row index from data attribute
+  const col = input.getAttribute("data-col"); // Get column index from data attribute
 
+  // If the value is out of valid range (1-9), clear the input
   if (value && (value < 1 || value > 9)) {
     input.value = "";
     return;
   }
 
+  // If no value is input, remove incorrect styling
   if (!value) {
     input.classList.remove("incorrect");
     return;
   }
 
+  // Make a POST request to check the input number
   fetch("/check_number", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      row: row,
-      col: col,
-      number: value
-    }),
+    body: JSON.stringify({ row, col, number: value }),
   })
-
-
-    .then((response) => response.json())
+    .then((response) => response.json()) // Parse the JSON response
     .then((data) => {
-      if (data.correct) {
-        input.classList.remove("incorrect");
-        updateCurrentGrid();  // Update grid after correct input
-        checkCompletion();
-        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-        cell.disabled = true;
-        updateNumberButtons();
-      } else {
-        input.classList.add("incorrect");
-        loseLife();
-        console.log("test", lives)
+      if (data.correct) { // If the input is correct
+        input.classList.remove("incorrect"); // Remove incorrect styling
+        updateCurrentGrid() // Update grid after correct input
+          .then(checkCompletion); // Check if puzzle is completed
+
+        // Disable the current cell input after correct entry
+        input.disabled = true; // Disable input directly without querying the cell
+        updateNumberButtons(); // Update the number buttons based on current grid
+      } else { // If the input is incorrect
+        input.classList.add("incorrect"); // Add incorrect styling
+        loseLife(); // Call loseLife function to decrease lives
       }
-    });
+    })
+    .catch(err => console.error("Error checking input:", err)); // Log any fetch errors
 }
 
+// Function to check if the Sudoku puzzle is complete
 function checkCompletion() {
-  let board = [];
-  document.querySelectorAll("tr").forEach((row, i) => {
-    let rowArr = [];
-    row.querySelectorAll("td").forEach((cell, j) => {
-      let value = cell.querySelector("input") ? cell.querySelector("input").value : cell.textContent;
-      rowArr.push(value === "" ? 0 : parseInt(value));
-    });
-    board.push(rowArr);
-  });
-
-  const answer = JSON.parse(document.getElementById("answer").value);
-
-  const isCompleted = board.every((row, i) =>
-    row.every((cell, j) => cell === answer[i][j])
+  const board = Array.from(document.querySelectorAll("tr")).map(row => 
+    Array.from(row.querySelectorAll("td")).map(cell => {
+      const input = cell.querySelector("input");
+      return input ? (parseInt(input.value) || 0) : (parseInt(cell.textContent) || 0);
+    })
   );
 
+  // Get the correct answer from the hidden input element
+  const answer = JSON.parse(document.getElementById("answer").value);
+
+  // Check if every cell matches the correct answer
+  const isCompleted = board.every((row, i) => row.every((cell, j) => cell === answer[i][j]));
+
+  // If the puzzle is complete, notify the user
   if (isCompleted) {
-    document.getElementById("message").textContent = "Well Done! You've solved the Sudoku!";
-    document.getElementById("message").style.color = "green";
-    disableAllInputs();
+    displayMessage("Well Done! You've solved the Sudoku!", "green");
+    disableAllInputs(); // Call function to disable all inputs
   }
 }
 
+// Function to display message on the UI
+function displayMessage(text, color) {
+  const messageElement = document.getElementById("message");
+  messageElement.textContent = text;
+  messageElement.style.color = color; // Set message color
+}
+
+// Function to disable all input fields in the puzzle
 function disableAllInputs() {
-  document.querySelectorAll("input").forEach((input) => {
-    input.disabled = true;
-  });
+  document.querySelectorAll("input").forEach(input => (input.disabled = true)); // Disable each input element
 }
 
+// Function to reset the game and start a new puzzle
 function newPuzzle() {
-  location.reload();
+  location.reload(); // Reload the page
 }
 
+// Function to reveal a number as a hint
 function revealNumber() {
-  const answer = JSON.parse(document.getElementById("answer").value);
+  const answer = JSON.parse(document.getElementById("answer").value); // Get the correct answer
   let board = [];
 
   // Gather the current board state
-  document.querySelectorAll("tr").forEach((row, i) => {
+  document.querySelectorAll("tr").forEach((row) => {
     let rowArr = [];
-    row.querySelectorAll("td").forEach((cell, j) => {
+    row.querySelectorAll("td").forEach((cell) => {
       let value = cell.querySelector("input") ? cell.querySelector("input").value : cell.textContent;
       rowArr.push(value === "" ? 0 : parseInt(value));
     });
-    board.push(rowArr);
+    board.push(rowArr); // Add the row to the board
   });
 
   // Find all empty cells on the board
@@ -126,123 +127,117 @@ function revealNumber() {
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
       if (board[i][j] === 0) {
-        emptyCells.push({ row: i, col: j });
+        emptyCells.push({ row: i, col: j }); // Store coordinates of empty cells
       }
     }
   }
 
   // If there are empty cells and hints are available
   if (emptyCells.length > 0 && hints > 0) {
-    const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)]; // Select a random empty cell
     const row = randomCell.row;
     const col = randomCell.col;
     const cell = document.querySelector(`[data-row="${row + 1}"][data-col="${col + 1}"]`);
 
-    // Reveal the correct number
+    // Reveal the correct number in the selected cell
     const correctNumber = answer[row][col];
     cell.value = correctNumber;
-    cell.disabled = true;  // Disable the input after revealing the correct number
+    cell.disabled = true;  // Disable input for this cell after revealing
 
-    // Make an API call to check_number to validate the revealed number
+    // Make an API call to check the revealed number
     fetch("/check_number", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        row: row + 1,  // Send 1-based row and col indices to the backend
+        row: row + 1, // Send 1-based indices to the backend
         col: col + 1,
         number: correctNumber
       }),
     })
     .then(response => response.json())
     .then(data => {
-        // Update the grid after the correct input
-        updateCurrentGrid().then(() => {
-          checkCompletion(); // Check if the puzzle is now complete
-          updateNumberButtons();
-        });
+      // Update the grid after the correct input
+      updateCurrentGrid().then(() => {
+        checkCompletion(); // Check if the puzzle is now complete
+        updateNumberButtons(); // Update numbers on the buttons
+      });
     })
     .catch(error => {
-      console.error("Error checking the revealed number:", error);
+      console.error("Error checking the revealed number:", error); // Log any errors
     });
 
     // Use a hint
-    useHint();
+    useHint(); // Call useHint function to decrease hint count
   } else {
-    console.error('No empty cells or hints exhausted');
+    console.error('No empty cells or hints exhausted'); // Log if no hints are available
   }
 }
 
-
-
+// Function to decrement hints and update hint display
 function useHint() {
-  hints -= 1;
+  hints -= 1; // Decrease hint count
   const hintIcons = Array.from(document.querySelectorAll(".hint")).reverse();
 
+  // Update each hint icon based on remaining hints
   hintIcons.forEach((icon, index) => {
-    if (index < hints) {
-      icon.classList.remove("used");
-    } else {
-      icon.classList.add("used");
-    }
+    icon.classList.toggle("used", index >= hints); // Toggle visibility based on hints
   });
 
+  // Alert the user if no hints are left
   if (hints === 0) {
-    document.getElementById("message").textContent = "No more hints available!";
-    document.getElementById("message").style.color = "orange";
+    displayMessage("No more hints available!", "orange"); // Notify user
   }
 }
 
+// Function to update the current grid state on the server
 function updateCurrentGrid() {
   return new Promise((resolve) => {
-  const currentGrid = [];
+    const currentGrid = Array.from(document.querySelectorAll("tr")).map(row => 
+      Array.from(row.querySelectorAll("td")).map(cell => {
+        const input = cell.querySelector("input");
+        return input ? (parseInt(input.value) || 0) : (parseInt(cell.textContent) || 0);
+      })
+    );
 
-  document.querySelectorAll("tr").forEach((row, i) => {
-    const rowArr = [];
-    row.querySelectorAll("td").forEach((cell, j) => {
-      const input = cell.querySelector("input");
-      rowArr.push(input ? parseInt(input.value) || 0 : parseInt(cell.textContent) || 0);
-    });
-    currentGrid.push(rowArr);
-  });
-
-  // Send updated grid to the server
-  fetch("/update_current_grid", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ grid: currentGrid }),
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      console.log("Current grid updated successfully.");
-    } else {
-      console.error("Failed to update current grid.");
-    }
-    resolve();  // Resolve the promise here
-         });
+    // Send the updated grid state to the server
+    fetch("/update_current_grid", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ grid: currentGrid }), // Convert grid to JSON
+    })
+      .then(response => response.json()) // Parse JSON response
+      .then(data => {
+        if (data.success) {
+          console.log("Current grid updated successfully."); // Log success
+        } else {
+          console.error("Failed to update current grid."); // Log error
+        }
+        resolve(); // Resolve the promise
+      });
   });
 }
 
+// Function to manage the clicks on Sudoku cells
 let activeCell = null;
 
-// Listen for clicks on the Sudoku cells
+// Listen for clicks on the Sudoku cells and set the active cell
 document.querySelectorAll("td input").forEach((cell) => {
   cell.addEventListener("focus", function () {
-    activeCell = this;  // Set the currently focused cell as active
+    activeCell = this; // Set the currently focused cell as active
   });
 });
 
-// Listen for number button clicks
+// Listen for number button clicks and set the current cell's value
 document.querySelectorAll(".number-button").forEach((button) => {
   button.addEventListener("click", function () {
     const number = this.getAttribute("data-value");
     if (activeCell) {
-      activeCell.value = number;
-      checkInput(activeCell);  // Call your checkInput function to verify the number
+      activeCell.value = number; // Set the value in the active cell
+      checkInput(activeCell);  // Call checkInput to verify the number
     }
   });
 });
@@ -252,13 +247,8 @@ function updateNumberButtons() {
   get_filled_numbers().then(filledNumbers => {
     document.querySelectorAll(".number-button").forEach((button) => {
       const value = parseInt(button.getAttribute("data-value"));
-      if (filledNumbers.includes(value)) {
-        button.classList.add("disabled");
-        button.disabled = true;
-      } else {
-        button.classList.remove("disabled");
-        button.disabled = false;
-      }
+      button.disabled = filledNumbers.includes(value); // Disable if already filled
+      button.classList.toggle("disabled", button.disabled); // Toggle disabled class
     });
   });
 }
@@ -269,15 +259,16 @@ document.addEventListener("DOMContentLoaded", function () {
   updateNumberButtons();  // Update buttons for fully filled numbers
 });
 
-
+// Function to get filled numbers from the server
 function get_filled_numbers() {
   return new Promise((resolve, reject) => {
-    fetch("/get_filled_numbers")  // Assuming a route that returns filled_numbers
+    fetch("/get_filled_numbers")  // Assuming a route that returns filled numbers
       .then(response => response.json())
       .then(data => {
         resolve(data.filled_numbers || []);  // Resolve with filled_numbers or an empty array
       })
       .catch(error => {
+        console.error("Error fetching filled numbers:", error); // Log fetch errors
         reject(error);  // Reject the promise if there's an error
       });
   });
@@ -287,8 +278,7 @@ function get_filled_numbers() {
 function removeIncorrectInputs() {
   document.querySelectorAll("td input").forEach((input) => {
     if (!input.disabled && input.value !== "") {
-      // Remove value if input is not disabled and is incorrect
-      input.value = "";
+      input.value = ""; // Clear value if input is not disabled
       input.classList.remove("incorrect"); // Optionally, remove the incorrect styling
     }
   });
@@ -297,73 +287,39 @@ function removeIncorrectInputs() {
 // Add event listener to the Remove button
 document.getElementById("remove-button").addEventListener("click", removeIncorrectInputs);
 
-
 // Function to detect if the user is on a mobile device
 function isMobile() {
-  return /Mobi|Android/i.test(navigator.userAgent);
+  return /Mobi|Android/i.test(navigator.userAgent); // Regex to check for mobile user agent
 }
 
 // Function to remove highlights from all cells
 function clearHighlights() {
   document.querySelectorAll('td').forEach(td => {
-      td.classList.remove('highlighted');
+    td.classList.remove('highlighted'); // Remove highlight class from each cell
   });
 }
 
-// Prevent keyboard input on mobile devices by adding `readonly`
+// Prevent keyboard input on mobile devices by adding readonly
 function preventKeyboard() {
   if (isMobile()) {
-      document.querySelectorAll("td").forEach((cell) => {
-          const input = cell.querySelector("input");
-          if (input) {
-              // Set input to readonly to prevent keyboard pop-up
-              input.setAttribute("readonly", "readonly");
-
-              // Highlight the box when the td is clicked
-              cell.addEventListener("click", function () {
-                  clearHighlights(); // Clear any existing highlights
-                  cell.classList.add('highlighted'); // Highlight this cell
-                  setTimeout(() => input.blur(), 0); // Blur the input to immediately hide keyboard
-              });
-          }
-      });
-  }
-}
-
-// Handle value input from number buttons
-function handleNumberButtonClicks() {
-  document.querySelectorAll(".number-button").forEach((button) => {
-      button.addEventListener("click", function () {
-          const value = this.getAttribute("data-value");
-          const highlightedCell = document.querySelector('td.highlighted');
-          if (highlightedCell) {
-              const input = highlightedCell.querySelector("input");
-              if (input) {
-                  // Set the value and dispatch an input event
-                  input.value = value; // Set value when the button is clicked
-                  input.dispatchEvent(new Event('input')); // Dispatch input event if needed
-                  // Highlights will be cleared in clearHighlights() after input
-                  clearHighlights(); // Optionally clear highlights here
-              }
-          }
-      });
-  });
-}
-
-// Handle the remove button to clear highlighted cells
-document.getElementById("remove-button").addEventListener("click", function () {
-  const highlightedCell = document.querySelector('td.highlighted');
-  if (highlightedCell) {
-      const input = highlightedCell.querySelector("input");
+    document.querySelectorAll("td").forEach((cell) => {
+      const input = cell.querySelector("input");
       if (input) {
-          input.value = ""; // Clear the input value
-          clearHighlights(); // Clear highlights
+        // Set input to readonly to prevent keyboard pop-up
+        input.setAttribute("readonly", "readonly");
+
+        // Highlight the box when the td is clicked
+        cell.addEventListener("click", function () {
+          clearHighlights(); // Clear any existing highlights
+          cell.classList.add('highlighted'); // Highlight this cell
+          setTimeout(() => input.blur(), 0); // Blur the input to hide keyboard
+        });
       }
+    });
   }
-});
+}
 
 // Call this function when the DOM is fully loaded
 document.addEventListener("DOMContentLoaded", function () {
   preventKeyboard(); // Call the preventKeyboard function
-  handleNumberButtonClicks(); // Setup button handlers
 });
