@@ -1,5 +1,11 @@
-html {
-    background-color: rgb(188, 225, 239);
+  :root {
+    --primary-bg: rgb(188, 225, 239);
+    --button-bg: rgb(76, 134, 126);
+    --highlight-color: rgba(0, 128, 255, 0.3);
+  }
+  
+  html {
+    background-color: var(--primary-bg);
   }
 
   html,
@@ -26,7 +32,7 @@ html {
     color: white;
     border: none;
     font-size: 16px;
-    background-color: rgb(76, 134, 126);
+    background-color: var(--button-bg);
     border-radius: 15px;
     cursor: pointer;
     transition: 1s;
@@ -76,6 +82,7 @@ html {
       0.3
     ); /* Light blue background for highlighting */
     box-shadow: 0 0 10px rgba(0, 128, 255, 0.8); /* Optional: Add glow effect */
+    background-color: var(--highlight-color);
     z-index: 1; /* Ensure highlighted cell is on top visually */
   }
 
@@ -87,8 +94,28 @@ html {
   /* Responsive adjustments if necessary */
   @media (max-width: 600px) {
     td {
-      width: 30px; /* Adjust the size for smaller screens */
+      width: 30px; 
       height: 30px;
+    }
+  
+    /* New styles for better adjustments in smaller screens */
+    .number-button {
+      width: 35px; 
+      height: 35px;
+      font-size: 16px; 
+    }
+  }
+  
+  @media (min-width: 601px) and (max-width: 768px) {
+    td {
+      width: 40px; 
+      height: 40px;
+    }
+  
+    .number-button {
+      width: 50px; 
+      height: 50px;
+      font-size: 22px; 
     }
   }
 
@@ -203,6 +230,12 @@ html {
     align-items: center; /* Center vertically */
     flex-shrink: 1; /* Allow the buttons to shrink when space is limited */
     padding: 0; /* Ensure no padding affects alignment */
+  }
+
+  .sudoku-input {
+    width: 100%;
+    height: 100%;
+    text-align: center;
   }
 
   /* Responsive styling for smaller screens */
