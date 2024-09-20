@@ -2,6 +2,7 @@
 let lives = parseInt(document.querySelector("span#lives")?.textContent || "3", 10);
 let hints = parseInt(document.querySelector("span#hints")?.textContent || "3", 10);
 
+
 // Function to update lives and the display of hearts
 function updateLives(newLives) {
   lives = newLives; // Set current lives to new value
@@ -85,8 +86,9 @@ function checkCompletion() {
 
   // If the puzzle is complete, notify the user
   if (isCompleted) {
-    displayMessage("Well Done! You've solved the Sudoku!", "green");
-    disableAllInputs(); // Call function to disable all inputs
+      stopTimer();  // Stop the timer when the puzzle is solved
+      showCompletionMessage();  // Display the final message
+      disableAllInputs(); // Call function to disable all inputs
   }
 }
 
@@ -323,3 +325,49 @@ function preventKeyboard() {
 document.addEventListener("DOMContentLoaded", function () {
   preventKeyboard(); // Call the preventKeyboard function
 });
+
+document.addEventListener('DOMContentLoaded', (event) => {
+  startTimer();
+});
+
+let timerInterval;  // Store the interval globally
+let finalTime;      // Store the final time
+
+function startTimer() {
+    let startTime = Date.now();
+
+    timerInterval = setInterval(() => {
+        let elapsedTime = Date.now() - startTime;
+        let minutes = Math.floor(elapsedTime / 60000);
+        let seconds = Math.floor((elapsedTime % 60000) / 1000);
+
+        // Add leading zeros to keep the format 00:00
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        seconds = seconds < 10 ? '0' + seconds : seconds;
+
+        finalTime = minutes + ":" + seconds;
+        document.getElementById('timer').textContent = finalTime;
+    }, 1000);  // Update the timer every second
+}
+
+function stopTimer() {
+    clearInterval(timerInterval);  // Stop the timer
+}
+
+function showCompletionMessage() {
+    let hintsUsed = 3 - hints
+    let mistakes = 3 - lives
+    let message = "Congratulations! You solved the puzzle in " + finalTime + ",<br>" +
+                  "using " + hintsUsed + " hint(s), and made " + mistakes + " mistake(s)!";
+    let messageElement = document.getElementById('message');
+
+    // Update the message element with the final time and hints used
+    messageElement.textContent = message;
+
+    // Style the message as needed
+    messageElement.style.color = 'green';
+    messageElement.style.textAlign = 'center';
+    messageElement.style.fontSize = '20px';
+    messageElement.style.borderRadius = '10px';
+}
+
