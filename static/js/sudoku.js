@@ -355,19 +355,19 @@ function stopTimer() {
 }
 
 function showCompletionMessage() {
-    let hintsUsed = 3 - hints
-    let mistakes = 3 - lives
-    let message = "Congratulations! You solved the puzzle in " + finalTime + ",<br>" +
-                  "using " + hintsUsed + " hint(s), and made " + mistakes + " mistake(s)!";
-    let messageElement = document.getElementById('message');
+  let hintsUsed = 3 - hints;
+  let mistakes = 3 - lives;
+  let message = "Congratulations! You solved the puzzle in " + finalTime + ",<br>" +
+                "using " + hintsUsed + " hint(s), and made " + mistakes + " mistake(s)!";
+  let messageElement = document.getElementById('message');
 
-    // Update the message element with the final time and hints used
-    messageElement.textContent = message;
+  // Update the message element with the final time and hints used
+  messageElement.innerHTML = message;
 
-    // Style the message as needed
-    messageElement.style.color = 'green';
-    messageElement.style.textAlign = 'center';
-    messageElement.style.fontSize = '20px';
-    messageElement.style.borderRadius = '10px';
+  // Style the message as needed
+  messageElement.style.color = 'green';
+  messageElement.style.textAlign = 'center';
+  messageElement.style.fontSize = '20px';
+  messageElement.style.borderRadius = '10px';
 }
 
